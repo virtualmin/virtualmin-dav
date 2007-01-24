@@ -1,0 +1,2 @@
+name_mode=DAV username mode,1,0-user@domain,1-Virtualmin POP3/FTP login
+auth=Authentication type,1,Basic-Basic,Digest-Digest

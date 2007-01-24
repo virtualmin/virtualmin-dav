@@ -1,0 +1,49 @@
+index_title=DAV Users
+index_edom=No domain given!
+index_edom2=Domain does not exist!
+index_edav=Domain does not have DAV enabled.
+index_header=DAV authentication settings
+index_auth=Authentication type
+index_users=Users with DAV access
+index_ucount=$1 (All can have authentication mode changed)
+index_ucannot=$1 ($2 cannot have authentication mode changed)
+index_users2=Users who cannot be changed
+index_mode=DAV username mode
+index_mode0=user@domain
+index_mode1=Virtualmin POP3/FTP login
+index_change=Change
+index_desc=Configure DAV Authentication
+index_return=DAV authentication form
+
+feat_name=DAV Login
+feat_label=Enable DAV logins?
+feat_disname=DAV login
+feat_losing=DAV access will be disabled
+feat_edepweb=DAV cannot be enabled unless a website is
+feat_eapache=The Apache mod_dav module must be installed before DAV can be used
+feat_edigest=Digest authentication is enabled, but the $1 command is not installed.
+feat_backup=Backing up DAV users file ..
+feat_nofile=.. no users file found!
+feat_restore=Restoring DAV users file ..
+feat_nocopy=.. copy failed!
+feat_backup_name=DAV users file
+feat_evalidatefile=DAV users file $1 does not exist
+feat_evalidatealias=Missing DAV alias from Apache configuration
+feat_evalidateloc=Missing DAV Location from Apache configuration
+
+setup_dav=Adding DAV directives to website configuration ..
+setup_already=.. already defined.
+
+delete_dav=Removing DAV directives from website configuration ..
+
+save_dav=Updating domain for DAV users and in website configuration ..
+
+mail_dav=DAV login enabled?
+mail_clash=A DAV user with the same name already exists
+mail_pass=A password must be entered when enabling DAV for a user
+mail_header=DAV?
+
+save_err=Failed to change DAV authentication
+save_enone=No changes made
+save_save=Saving virtual server ..
+save_recreate=Re-creating DAV users ..

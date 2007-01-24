@@ -1,0 +1,27 @@
+feat_name=DAV Logini
+feat_label=DAV logini etkinle&#351;tirilsin mi?
+feat_disname=DAV logini
+feat_losing=DAV eri&#351;imi engellendi
+feat_edepweb=Web sitesi etkinle&#351;tirilmeden DAV etkinle&#351;tirilemez
+feat_eapache=DAV'&#305;n kullan&#305;labilmesi için önce Apache mod_dav modülü kurulmal&#305;
+feat_backup=DAV kullan&#305;c&#305; dosyalar&#305; yedekleniyor ..
+feat_nofile=.. hiçbir kullan&#305;c&#305; doyas&#305; bulunamad&#305;!
+feat_restore=DAV kullan&#305;c&#305; dosyas&#305; geri yükleniyor ..
+feat_nocopy=.. kopyalanamad&#305;!
+feat_backup_name=DAV kullan&#305;c&#305; dosyas&#305;
+feat_evalidatefile=DAV kullan&#305;c&#305; dosyas&#305; $1 mevcut de&#287;il
+feat_evalidatealias=Apache konfigürasyonundaki DAV alias&#305; eksik
+feat_evalidateloc=Apache konfigürasyonundaki DAV yeri eksik
+
+setup_dav=DAV direktifleri web sitesi konfigürasyonuna ekleniyor ..
+setup_already=.. zaten tan&#305;mlanm&#305;&#351;.
+
+delete_dav=Web sitesi konfigürasyonundan DAV direktifleri kald&#305;r&#305;l&#305;yor ..
+
+save_dav=DAV kullan&#305;c&#305;lar&#305; ve web sitesi konfigürasyonu için alanad&#305; güncelleniyor ..
+
+mail_dav=DAV logini etkinle&#351;tirilsin mi?
+mail_clash=Ayn&#305; isimle bir DAV kullan&#305;c&#305;s&#305; zaten mevcut
+mail_pass=Bir kullan&#305;c&#305; için DAV etkinle&#351;tirilirken bir &#351;ifre girilmeli
+mail_header=DAV?
+
