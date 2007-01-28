@@ -589,6 +589,7 @@ local ($dom) = @_;
 return { 'mod' => $module_name,
 	 'page' => "index.cgi?dom=$dom->{'id'}",
 	 'desc' => $text{'index_desc'},
+	 'cat' => 'services',
        };
 }
 

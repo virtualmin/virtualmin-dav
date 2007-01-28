@@ -13,7 +13,7 @@ index_mode0=user@domain
 index_mode1=Virtualmin POP3/FTP login
 index_mode2=domain\user (for Windows)
 index_change=Change
-index_desc=Configure DAV Authentication
+index_desc=DAV Authentication
 index_return=DAV authentication form
 
 feat_name=DAV Login
