@@ -43,6 +43,7 @@ mail_clash=A DAV user with the same name already exists
 mail_pass=A password must be entered when enabling DAV for a user
 mail_header=DAV?
 
+save_title=Updating DAV Authentication
 save_err=Failed to change DAV authentication
 save_enone=No changes made
 save_save=Saving virtual server ..
