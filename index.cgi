@@ -29,7 +29,8 @@ $d->{'dav_name_mode'} = $config{'name_mode'} if (!defined($d->{'dav_name_mode'})
 print &ui_table_row($text{'index_mode'},
 		    &ui_select("mode", $d->{'dav_name_mode'},
 			[ [ 0, $text{'index_mode0'} ],
-			  [ 1, $text{'index_mode1'} ] ]));
+			  [ 1, $text{'index_mode1'} ],
+			  [ 2, $text{'index_mode2'} ] ]));
 
 # Number of DAV users
 @davusers = &list_users($d);

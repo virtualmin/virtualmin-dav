@@ -48,6 +48,11 @@ if ($dom->{'dav_name_mode'} == 0) {
 	local $un = &virtual_server::remove_userdom($user->{'user'}, $dom);
 	return "$un\@$dom->{'dom'}";
 	}
+elsif ($dom->{'dav_name_mode'} == 2) {
+	# domain\user mode
+	local $un = &virtual_server::remove_userdom($user->{'user'}, $dom);
+	return "$dom->{'dom'}\\$un";
+	}
 else {
 	# Unix username mode
 	return $user->{'user'};
