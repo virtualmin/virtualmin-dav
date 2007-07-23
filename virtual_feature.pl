@@ -269,13 +269,6 @@ for($i=$_[1]; $i<=$_[2]; $i++) {
 return ($aliasline, $locstart, $locend);
 }
 
-# feature_bandwidth(&domain, start, &bw-hash)
-# Searches through log files for records after some date, and updates the
-# day counters in the given hash
-sub feature_bandwidth
-{
-}
-
 # feature_webmin(&domain)
 # Returns a list of webmin module names and ACL hash references to be set for
 # the Webmin user when this feature is enabled
