@@ -144,6 +144,16 @@ if ($virt) {
 		local @adp = $at eq "Digest" &&
 			     $apache::httpd_modules{'core'} >= 2.2 ?
 				("AuthDigestProvider file") : ( );
+		local @rhandlers;
+		if (defined(&virtual_server::list_available_php_versions)) {
+			# Turn off fast CGI handling of .php* scripts when they
+			# are accessed via DAV
+			push(@rhandlers, "RemoveHandler .php");
+			foreach my $v (
+			    &virtual_server::list_available_php_versions($d)) {
+				push(@rhandlers, "RemoveHandler .php$v->[0]");
+				}
+			}
 		push(@lines,
 		       "<Location /dav>",
 		       "DAV On",
@@ -154,6 +164,7 @@ if ($virt) {
 		       "Require valid-user",
 		       "ForceType text/plain",
 		       "Satisfy Any",
+		       @rhandlers,
 		       "</Location>");
 		}
 	splice(@$lref, $virt->{'eline'}, 0, @lines);
