@@ -85,6 +85,8 @@ return $_[1] || $_[2] ? 0 : 1;		# not for alias domains
 sub feature_setup
 {
 &$virtual_server::first_print($text{'setup_dav'});
+&virtual_server::obtain_lock_web($_[0])
+	if (defined(&virtual_server::obtain_lock_web));
 local $any;
 $_[0]->{'dav_auth'} ||= $config{'auth'};
 $_[0]->{'dav_name_mode'} = $config{'name_mode'} if (!defined($_[0]->{'dav_name_mode'}));
@@ -115,6 +117,8 @@ else {
 	    defined(&main::restart_apache) ? \&main::restart_apache
 					   : \&virtual_server::restart_apache);
 	}
+&virtual_server::release_lock_web($_[0])
+	if (defined(&virtual_server::release_lock_web));
 }
 
 # add_dav_directives(&dom, port)
@@ -124,7 +128,6 @@ sub add_dav_directives
 local ($d, $port) = @_;
 local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'}, $port);
 if ($virt) {
-	&lock_file($virt->{'file'});
 	local $passwd_file = &digest_file($d);
 	local $lref = &read_file_lines($virt->{'file'});
 	local ($aliasline, $locstart, $locend) =
@@ -169,7 +172,6 @@ if ($virt) {
 		}
 	splice(@$lref, $virt->{'eline'}, 0, @lines);
 	&flush_file_lines();
-	&unlock_file($virt->{'file'});
 	undef(@apache::get_config_cache);
 	return 1;
 	}
@@ -182,6 +184,8 @@ sub feature_modify
 {
 if ($_[0]->{'dom'} ne $_[1]->{'dom'}) {
 	# Change domain on DAV users
+	&virtual_server::obtain_lock_web($_[0])
+		if (defined(&virtual_server::obtain_lock_web));
 	&$virtual_server::first_print($text{'save_dav'});
 	local @users = &list_users($_[0]);
 	foreach $e (@users) {
@@ -194,6 +198,8 @@ if ($_[0]->{'dom'} ne $_[1]->{'dom'}) {
 	&change_dav_directives($_[0], $_[0]->{'web_port'});
 	&change_dav_directives($_[0], $_[0]->{'web_sslport'})
 		if ($_[0]->{'ssl'});
+	&virtual_server::release_lock_web($_[0])
+		if (defined(&virtual_server::release_lock_web));
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
 	}
 }
@@ -224,10 +230,14 @@ return 0;
 sub feature_delete
 {
 &$virtual_server::first_print($text{'delete_dav'});
+&virtual_server::obtain_lock_web($_[0])
+	if (defined(&virtual_server::obtain_lock_web));
 local $any;
 $any++ if (&remove_dav_directives($_[0], $_[0]->{'web_port'}));
 $any++ if ($_[0]->{'ssl'} &&
 	   &remove_dav_directives($_[0], $_[0]->{'web_sslport'}));
+&virtual_server::release_lock_web($_[0])
+	if (defined(&virtual_server::release_lock_web));
 if (!$any) {
 	&$virtual_server::second_print(
 		$virtual_server::text{'delete_noapache'});
@@ -243,7 +253,6 @@ sub remove_dav_directives
 local ($d, $port) = @_;
 local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'}, $port);
 if ($virt) {
-	&lock_file($virt->{'file'});
 	local $lref = &read_file_lines($virt->{'file'});
 	local ($aliasline, $locstart, $locend) =
 		&find_dav_lines($lref, $virt->{'line'}, $virt->{'eline'});
@@ -254,7 +263,6 @@ if ($virt) {
 		splice(@$lref, $aliasline, 1);
 		}
 	&flush_file_lines();
-	&unlock_file($virt->{'file'});
 	undef(@apache::get_config_cache);
 	return 1;
 	}
@@ -324,6 +332,7 @@ if (&copy_source_dest($file, $cfile)) {
 	return 1;
 	}
 else {
+	&unlock_file($cfile);
 	&$virtual_server::second_print($text{'feat_nocopy'});
 	return 0;
 	}
