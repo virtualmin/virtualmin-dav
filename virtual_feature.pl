@@ -166,7 +166,7 @@ if ($virt) {
 		       @adp,
 		       "Require valid-user",
 		       "ForceType text/plain",
-		       "Satisfy Any",
+		       "Satisfy All",
 		       @rhandlers,
 		       "</Location>");
 		}
