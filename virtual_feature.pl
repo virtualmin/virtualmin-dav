@@ -112,6 +112,10 @@ else {
 					   undef, $passwd_file);
 		}
 	&set_ownership_permissions(undef, undef, 0665, $passwd_file);
+
+	# Add the domain's user by default
+	# XXX
+
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
 	&virtual_server::register_post_action(
 	    defined(&main::restart_apache) ? \&main::restart_apache

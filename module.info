@@ -1,4 +1,4 @@
 desc=Virtualmin DAV
 hidden=1
 depends=virtual-server/2.27 1.221
-version=2.7
+version=2.8
