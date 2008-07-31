@@ -118,7 +118,7 @@ else {
 	    defined(&main::restart_apache) ? \&main::restart_apache
 					   : \&virtual_server::restart_apache);
 
-	# Add the domain's user by default
+	# Grant access to the domain's owner
 	my $uinfo;
 	if (!$d->{'parent'} &&
 	    ($uinfo = &virtual_server::get_domain_owner($_[0]))) {
