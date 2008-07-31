@@ -34,6 +34,7 @@ feat_evalidateloc=Missing DAV Location from Apache configuration
 
 setup_dav=Adding DAV directives to website configuration ..
 setup_already=.. already defined.
+setup_davuser=Adding DAV account for server administrator ..
 
 delete_dav=Removing DAV directives from website configuration ..
 

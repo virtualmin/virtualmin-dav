@@ -113,13 +113,32 @@ else {
 		}
 	&set_ownership_permissions(undef, undef, 0665, $passwd_file);
 
-	# Add the domain's user by default
-	# XXX
-
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
 	&virtual_server::register_post_action(
 	    defined(&main::restart_apache) ? \&main::restart_apache
 					   : \&virtual_server::restart_apache);
+
+	# Add the domain's user by default
+	my $uinfo;
+	if (!$d->{'parent'} &&
+	    ($uinfo = &virtual_server::get_domain_owner($_[0]))) {
+		&$virtual_server::first_print($text{'setup_davuser'});
+		local $un = &dav_username($uinfo, $_[0]);
+		local $newuser = { 'user' => $un,
+				   'enabled' => 1 };
+		if ($_[0]->{'dav_auth'} eq 'Digest') {
+			# Do Digest encryption
+			$newuser->{'pass'} = &htaccess_htpasswd::digest_password
+				($un, $_[0]->{'dom'}, $_[0]->{'pass'});
+			}
+		else {
+			# Copy Unix crypted pass
+			$newuser->{'pass'} = $uinfo->{'pass'};
+			}
+		&htaccess_htpasswd::create_user($newuser, $passwd_file);
+		&$virtual_server::second_print(
+			$virtual_server::text{'setup_done'});
+		}
 	}
 &virtual_server::release_lock_web($_[0])
 	if (defined(&virtual_server::release_lock_web));
