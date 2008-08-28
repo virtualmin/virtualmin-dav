@@ -1,0 +1,2 @@
+---- Changes since 2.8 ----
+When a domain's admin password is changed and the domain owner has an DAV account, it is updated to match.

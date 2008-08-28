@@ -225,6 +225,31 @@ if ($_[0]->{'dom'} ne $_[1]->{'dom'}) {
 		if (defined(&virtual_server::release_lock_web));
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
 	}
+if ($_[0]->{'pass'} ne $_[1]->{'pass'}) {
+	# Change password for domain admin, if he has a DAV account
+	local @users = &list_users($_[0]);
+	local $uinfo = &virtual_server::get_domain_owner($_[0]);
+	local ($un, $suser);
+	if ($uinfo) {
+		$un = &dav_username($uinfo, $_[0]);
+		($suser) = grep { $_->{'user'} eq $un } @users;
+		}
+	if ($suser) {
+		&$virtual_server::first_print($text{'save_davpass'});
+                if ($_[0]->{'dav_auth'} eq 'Digest') {
+                        $suser->{'pass'} = &htaccess_htpasswd::digest_password(
+                                $un, $_[0]->{'dom'}, $_[0]->{'pass'});
+                        }
+                else {
+                        $suser->{'pass'} = &htaccess_htpasswd::encrypt_password(
+				$_[0]->{'pass'});
+                        }
+		&htaccess_htpasswd::modify_user($suser);
+		&$virtual_server::second_print(
+			$virtual_server::text{'setup_done'});
+		}
+	}
+
 }
 
 sub change_dav_directives

@@ -39,6 +39,7 @@ setup_davuser=Adding DAV account for server administrator ..
 delete_dav=Removing DAV directives from website configuration ..
 
 save_dav=Updating domain for DAV users and in website configuration ..
+save_davpass=Updating DAV password for administration user ..
 
 mail_dav=DAV login enabled?
 mail_clash=A DAV user with the same name already exists
