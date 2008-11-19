@@ -1,6 +1,7 @@
 # Defines functions for this feature
 
 require 'virtualmin-dav-lib.pl';
+&load_theme_library();
 
 $input_name = $module_name;
 $input_name =~ s/[^A-Za-z0-9]/_/g;
