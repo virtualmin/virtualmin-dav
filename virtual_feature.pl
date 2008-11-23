@@ -325,13 +325,13 @@ sub find_dav_lines
 {
 local ($aliasline, $locstart, $locend, $i);
 for($i=$_[1]; $i<=$_[2]; $i++) {
-	if ($_[0]->[$i] =~ /^Alias\s+\/dav\s/i) {
+	if ($_[0]->[$i] =~ /^\s*Alias\s+\/dav\s/i) {
 		$aliasline = $i;
 		}
-	elsif ($_[0]->[$i] =~ /^<Location\s+\/dav>/i && !$locstart) {
+	elsif ($_[0]->[$i] =~ /^\s*<Location\s+\/dav>/i && !$locstart) {
 		$locstart = $i;
 		}
-	elsif ($_[0]->[$i] =~ /^<\/Location>/i && $locstart && !$locend) {
+	elsif ($_[0]->[$i] =~ /^\s*<\/Location>/i && $locstart && !$locend) {
 		$locend = $i;
 		}
 	}
