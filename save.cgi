@@ -41,8 +41,8 @@ $d->{'dav_name_mode'} = $in{'mode'};
 # Re-create all users
 &$virtual_server::first_print($text{'save_recreate'});
 $file = &digest_file($d);
-open(TRUNC, ">$file");
-close(TRUNC);
+&virtual_server::open_tempfile_as_domain_user($d, TRUNC, ">$file", 1, 1);
+&virtual_server::close_tempfile_as_domain_user($d, TRUNC);
 foreach $u (@users) {
 	$davu = { 'user' => &dav_username($u, $d),
 		  'enabled' => 1 };
@@ -59,7 +59,8 @@ foreach $u (@users) {
 		$davu->{'dom'} = $d->{'dom'};
 		$davu->{'digest'} = 1;
 		}
-        &htaccess_htpasswd::create_user($davu, $file);
+	&virtual_server::write_as_domain_user($d,
+		sub { &htaccess_htpasswd::create_user($davu, $file) });
 	}
 &$virtual_server::second_print($virtual_server::text{'setup_done'});
 
