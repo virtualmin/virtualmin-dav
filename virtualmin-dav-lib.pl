@@ -34,11 +34,12 @@ return @$users;
 sub save_users
 {
 local $u;
-&open_tempfile(FILE, ">".&digest_file($_[0]));
+&virtual_server::open_tempfile_as_domain_user(
+	$_[0], FILE, ">".&digest_file($_[0]));
 foreach $u (@{$_[1]}) {
 	&print_tempfile(FILE, $u->{'user'},":",$u->{'dom'},":",$u->{'pass'},"\n");
 	}
-&close_tempfile(FILE);
+&virtual_server::close_tempfile_as_domain_user($_[0], FILE);
 }
 
 # dav_username(&user, &domain)
