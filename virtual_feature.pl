@@ -86,8 +86,7 @@ return $_[1] || $_[2] ? 0 : 1;		# not for alias domains
 sub feature_setup
 {
 &$virtual_server::first_print($text{'setup_dav'});
-&virtual_server::obtain_lock_web($_[0])
-	if (defined(&virtual_server::obtain_lock_web));
+&virtual_server::obtain_lock_web($_[0]);
 local $any;
 $_[0]->{'dav_auth'} ||= $config{'auth'};
 $_[0]->{'dav_name_mode'} = $config{'name_mode'} if (!defined($_[0]->{'dav_name_mode'}));
@@ -102,22 +101,19 @@ else {
 	# Added Apache config .. now create other files
 	local $passwd_file = &digest_file($_[0]);
 	if (!-d "$_[0]->{'home'}/etc") {
-		&make_dir("$_[0]->{'home'}/etc", 0755);
-		&set_ownership_permissions($_[0]->{'uid'}, $_[0]->{'gid'},
-					   undef, "$_[0]->{'home'}/etc");
+		&virtual_server::make_dir_as_domain_user(
+			$_[0], "$_[0]->{'home'}/etc", 0755);
 		}
 	if (!-r $passwd_file) {
-		&open_tempfile(PASSWD, ">$passwd_file", 0, 1);
-		&close_tempfile(PASSWD);
-		&set_ownership_permissions($_[0]->{'uid'}, $_[0]->{'gid'},
-					   undef, $passwd_file);
+		&virtual_server::open_tempfile_as_domain_user(
+			$_[0], PASSWD, ">$passwd_file", 0, 1);
+		&virtual_server::close_tempfile_as_domain_user($_[0], PASSWD);
 		}
-	&set_ownership_permissions(undef, undef, 0665, $passwd_file);
+	&virtual_server::set_permissions_as_domain_user(
+		$_[0], 0665, $passwd_file);
 
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
-	&virtual_server::register_post_action(
-	    defined(&main::restart_apache) ? \&main::restart_apache
-					   : \&virtual_server::restart_apache);
+	&virtual_server::register_post_action(\&virtual_server::restart_apache);
 
 	# Grant access to the domain's owner
 	my $uinfo;
@@ -136,13 +132,14 @@ else {
 			# Copy Unix crypted pass
 			$newuser->{'pass'} = $uinfo->{'pass'};
 			}
-		&htaccess_htpasswd::create_user($newuser, $passwd_file);
+		&virtual_server::execute_as_domain_user($_[0],
+			sub { &htaccess_htpasswd::create_user(
+				$newuser, $passwd_file) });
 		&$virtual_server::second_print(
 			$virtual_server::text{'setup_done'});
 		}
 	}
-&virtual_server::release_lock_web($_[0])
-	if (defined(&virtual_server::release_lock_web));
+&virtual_server::release_lock_web($_[0]);
 }
 
 # add_dav_directives(&dom, port)
@@ -208,8 +205,7 @@ sub feature_modify
 {
 if ($_[0]->{'dom'} ne $_[1]->{'dom'}) {
 	# Change domain on DAV users
-	&virtual_server::obtain_lock_web($_[0])
-		if (defined(&virtual_server::obtain_lock_web));
+	&virtual_server::obtain_lock_web($_[0]);
 	&$virtual_server::first_print($text{'save_dav'});
 	local @users = &list_users($_[0]);
 	foreach $e (@users) {
@@ -222,8 +218,7 @@ if ($_[0]->{'dom'} ne $_[1]->{'dom'}) {
 	&change_dav_directives($_[0], $_[0]->{'web_port'});
 	&change_dav_directives($_[0], $_[0]->{'web_sslport'})
 		if ($_[0]->{'ssl'});
-	&virtual_server::release_lock_web($_[0])
-		if (defined(&virtual_server::release_lock_web));
+	&virtual_server::release_lock_web($_[0]);
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
 	}
 if ($_[0]->{'pass'} ne $_[1]->{'pass'}) {
@@ -279,14 +274,12 @@ return 0;
 sub feature_delete
 {
 &$virtual_server::first_print($text{'delete_dav'});
-&virtual_server::obtain_lock_web($_[0])
-	if (defined(&virtual_server::obtain_lock_web));
+&virtual_server::obtain_lock_web($_[0]);
 local $any;
 $any++ if (&remove_dav_directives($_[0], $_[0]->{'web_port'}));
 $any++ if ($_[0]->{'ssl'} &&
 	   &remove_dav_directives($_[0], $_[0]->{'web_sslport'}));
-&virtual_server::release_lock_web($_[0])
-	if (defined(&virtual_server::release_lock_web));
+&virtual_server::release_lock_web($_[0]);
 if (!$any) {
 	&$virtual_server::second_print(
 		$virtual_server::text{'delete_noapache'});
@@ -370,13 +363,12 @@ sub feature_restore
 {
 local ($d, $file, $opts) = @_;
 &$virtual_server::first_print($text{'feat_restore'});
+&set_ownership_permissions(undef, undef, 0755, $file);
 local $cfile = &digest_file($_[0]);
 &lock_file($cfile);
-if (&copy_source_dest($file, $cfile)) {
+if (&virtual_server::copy_source_dest_as_domain_user($d, $file, $cfile)) {
 	&unlock_file($cfile);
-	&set_ownership_permissions($d->{'uid'}, $d->{'gid'},
-				   undef, $cfile);
-	&set_ownership_permissions(undef, undef, 0665, $cfile);
+	&virtual_server::set_permissions_as_domain_user($d, 0665, $cfile);
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
 	return 1;
 	}
@@ -504,12 +496,15 @@ if ($in->{$input_name} && !$suser) {
                         $newuser->{'pass'} = "UNKNOWN";
                         }
                 }
-        &htaccess_htpasswd::create_user($newuser, &digest_file($dom));
+	&virtual_server::execute_as_domain_user($dom,
+		sub { &htaccess_htpasswd::create_user(
+			$newuser, &digest_file($dom)) });
 	$rv = 1;
         }
 elsif (!$in->{$input_name} && $suser) {
         # Delete the user
-        &htaccess_htpasswd::delete_user($suser);
+	&virtual_server::execute_as_domain_user($dom,
+		sub { &htaccess_htpasswd::delete_user($suser) });
 	$rv = 0;
         }
 elsif ($in->{$input_name} && $suser) {
@@ -525,7 +520,8 @@ elsif ($in->{$input_name} && $suser) {
 				$user->{'plainpass'});
                         }
                 }
-        &htaccess_htpasswd::modify_user($suser);
+	&virtual_server::execute_as_domain_user($dom,
+		sub { &htaccess_htpasswd::modify_user($suser) });
 	$rv = 1;
         }
 else {
@@ -560,7 +556,8 @@ if ($suser) {
 				$user->{'plainpass'});
 			}
 		}
-	&htaccess_htpasswd::modify_user($suser);
+	&virtual_server::execute_as_domain_user($dom,
+		sub { &htaccess_htpasswd::modify_user($suser) });
 	}
 }
 
@@ -575,7 +572,8 @@ local @users = &list_users($dom);
 local $un = &dav_username($user, $dom);
 local ($suser) = grep { $_->{'user'} eq $un } @users;
 if ($suser) {
-	&htaccess_htpasswd::delete_user($suser);
+	&virtual_server::execute_as_domain_user($dom,
+		sub { &htaccess_htpasswd::delete_user($suser) });
 	}
 }
 
