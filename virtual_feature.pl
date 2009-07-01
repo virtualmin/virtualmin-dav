@@ -132,7 +132,7 @@ else {
 			# Copy Unix crypted pass
 			$newuser->{'pass'} = $uinfo->{'pass'};
 			}
-		&virtual_server::execute_as_domain_user($_[0],
+		&virtual_server::write_as_domain_user($_[0],
 			sub { &htaccess_htpasswd::create_user(
 				$newuser, $passwd_file) });
 		&$virtual_server::second_print(
@@ -496,14 +496,14 @@ if ($in->{$input_name} && !$suser) {
                         $newuser->{'pass'} = "UNKNOWN";
                         }
                 }
-	&virtual_server::execute_as_domain_user($dom,
+	&virtual_server::write_as_domain_user($dom,
 		sub { &htaccess_htpasswd::create_user(
 			$newuser, &digest_file($dom)) });
 	$rv = 1;
         }
 elsif (!$in->{$input_name} && $suser) {
         # Delete the user
-	&virtual_server::execute_as_domain_user($dom,
+	&virtual_server::write_as_domain_user($dom,
 		sub { &htaccess_htpasswd::delete_user($suser) });
 	$rv = 0;
         }
@@ -520,7 +520,7 @@ elsif ($in->{$input_name} && $suser) {
 				$user->{'plainpass'});
                         }
                 }
-	&virtual_server::execute_as_domain_user($dom,
+	&virtual_server::write_as_domain_user($dom,
 		sub { &htaccess_htpasswd::modify_user($suser) });
 	$rv = 1;
         }
@@ -556,7 +556,7 @@ if ($suser) {
 				$user->{'plainpass'});
 			}
 		}
-	&virtual_server::execute_as_domain_user($dom,
+	&virtual_server::write_as_domain_user($dom,
 		sub { &htaccess_htpasswd::modify_user($suser) });
 	}
 }
@@ -572,7 +572,7 @@ local @users = &list_users($dom);
 local $un = &dav_username($user, $dom);
 local ($suser) = grep { $_->{'user'} eq $un } @users;
 if ($suser) {
-	&virtual_server::execute_as_domain_user($dom,
+	&virtual_server::write_as_domain_user($dom,
 		sub { &htaccess_htpasswd::delete_user($suser) });
 	}
 }
