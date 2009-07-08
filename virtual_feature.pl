@@ -185,6 +185,10 @@ if ($virt) {
 				push(@rhandlers, "RemoveHandler .php$v->[0]");
 				}
 			}
+		local @norewrite;
+		if ($apache::httpd_modules{'mod_rewrite'}) {
+			@norewrite = ( "RewriteEngine off" );
+			}
 		push(@lines,
 		       "<Location /dav>",
 		       "DAV On",
@@ -196,6 +200,7 @@ if ($virt) {
 		       "ForceType text/plain",
 		       "Satisfy All",
 		       @rhandlers,
+		       @norewrite,
 		       "</Location>");
 		}
 	splice(@$lref, $virt->{'eline'}, 0, @lines);
