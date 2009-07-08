@@ -139,6 +139,13 @@ else {
 			$virtual_server::text{'setup_done'});
 		}
 	}
+
+# Make sure /dav isn't proxied
+if (defined(&virtual_server::setup_noproxy_path)) {
+	&virtual_server::setup_noproxy_path(
+		$_[0], { }, undef, { 'path' => '/dav/' }, 1);
+	}
+
 &virtual_server::release_lock_web($_[0]);
 }
 
@@ -287,6 +294,12 @@ if (!$any) {
 else {
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
 	&virtual_server::register_post_action(\&virtual_server::restart_apache);
+
+	# Remove negative proxy for /dav
+	if (defined(&virtual_server::delete_noproxy_path)) {
+		&virtual_server::delete_noproxy_path(
+			$_[0], { }, undef, { 'path' => '/dav/' });
+		}
 	}
 }
 

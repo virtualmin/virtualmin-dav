@@ -1,2 +1,4 @@
 ---- Changes since 2.8 ----
 When a domain's admin password is changed and the domain owner has an DAV account, it is updated to match.
+---- Changes since 3.1 ----
+Proxying for /dav is disabled, so that the DAV feature works even if some other script (like one using Rails) has a proxy for /.
