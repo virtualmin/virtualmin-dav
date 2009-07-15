@@ -1,0 +1,53 @@
+index_title=Пользователи DAV 
+index_edom=Не указан домен!
+index_edom2=Домен не существует!
+index_edav=В домене не задействован DAV.
+index_header=Настройки аутентификации DAV
+index_auth=Тип аутентификации
+index_users=Пользователи с доступом к DAV
+index_ucount=$1 (Каждому доступна смена режима аутентификации)
+index_ucannot=$1 (Из них $2 не могут менять режим аутентификации)
+index_users2=Пользователи, которые не могут быть изменены
+index_mode=Формат имени пользователя DAV 
+index_mode0=user@domain
+index_mode1=Virtualmin POP3/FTP login
+index_mode2=domain\user (для Windows)
+index_change=Изменить
+index_desc=Аутентификация DAV 
+index_return=настройкам аутентификации DAV
+
+feat_name=Логин DAV 
+feat_label=Задействовать логин DAV?
+feat_disname=Логин DAV 
+feat_losing=Доступ посредсвом DAV будет отключен
+feat_edepweb=DAV cannot be enabled unless a website is
+feat_eapache=Модуль mod_dav для Apache должен быть установлен перед началом использования DAV
+feat_edigest=Аутентификация "Digest" задействована, но команда $1 не установлена.
+feat_backup=Резервирование файла пользователей DAV ..
+feat_nofile=.. файл пользователей не найден!
+feat_restore=Восстановление файла пользователей DAV ..
+feat_nocopy=.. копирование не удалось!
+feat_backup_name=Файл пользователей DAV
+feat_evalidatefile=Файл пользователей DAV $1 не существует
+feat_evalidatealias=Отсутсвуют псевдонимы DAV в конфигурации Apache
+feat_evalidateloc=Отсутствует расположение DAV в конфигурации Apache
+
+setup_dav=Добавление параметров DAV в конфигурацию вебсайта ..
+setup_already=.. уже определены.
+setup_davuser=Добавление учетной записи DAV администратору сервера ..
+
+delete_dav=Удаление параметров DAV из конфигурации вебсайта ..
+
+save_dav=Обновление домена сонфигурации пользователей DAV и конфигурации вебсайта ..
+save_davpass=Обновление пароля DAV для администратовных пользователей ..
+
+mail_dav=Логин DAV задействован?
+mail_clash=Пользователь DAV с таким именем уже существует
+mail_pass=При инициализации DAV аутентификации должен быть указан пароль
+mail_header=DAV?
+
+save_title=Обновление DAV аутентификации
+save_err=Ошибка при изменении DAV аутентификации
+save_enone=Никаких изменений нет
+save_save=Сохранение виртуального сервера ..
+save_recreate=Повторное создание пользователей DAV ..
