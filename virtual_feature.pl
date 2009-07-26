@@ -384,7 +384,9 @@ local ($d, $file, $opts) = @_;
 &set_ownership_permissions(undef, undef, 0755, $file);
 local $cfile = &digest_file($_[0]);
 &lock_file($cfile);
-if (&virtual_server::copy_source_dest_as_domain_user($d, $file, $cfile)) {
+local ($ok, $err) = &virtual_server::copy_source_dest_as_domain_user(
+			$d, $file, $cfile);
+if ($ok) {
 	&unlock_file($cfile);
 	&virtual_server::set_permissions_as_domain_user($d, 0665, $cfile);
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
@@ -392,7 +394,7 @@ if (&virtual_server::copy_source_dest_as_domain_user($d, $file, $cfile)) {
 	}
 else {
 	&unlock_file($cfile);
-	&$virtual_server::second_print($text{'feat_nocopy'});
+	&$virtual_server::second_print(&text('feat_nocopy2', $err));
 	return 0;
 	}
 }
