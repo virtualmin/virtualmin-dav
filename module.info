@@ -1,6 +1,6 @@
 desc=Virtualmin DAV
 hidden=1
 depends=virtual-server/3.70 1.221
-version=3.2
+version=3.3
 desc_nl=Virtualmin DAV
 feedback=jcameron@webmin.com
