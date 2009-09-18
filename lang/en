@@ -54,6 +54,18 @@ save_recreate=Re-creating DAV users ..
 
 shares_title=DAV Shares
 shares_link=DAV Shares
-shares_dir=Sub-directory
+shares_dir=URL path
+shares_relpath=Directory under home
 shares_realm=Description
 shares_users=Users with access
+shares_none=No additional DAV shares have been created yet.
+shares_add=Add a new DAV share.
+
+share_title1=Create DAV Share
+share_title2=Edit DAV Share
+share_header=DAV share details
+share_dir=URL path to share
+share_path=Directory under home
+share_samepath=Same as URL path
+share_realm=Share description
+

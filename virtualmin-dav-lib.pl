@@ -83,14 +83,19 @@ foreach my $a (&apache::find_directive_struct("Alias", $vconf)) {
 my $auf = $d->{'dav_auth'} eq "Digest" &&
 	  $apache::httpd_modules{'core'} < 2.2 ? "AuthDigestFile"
 					       : "AuthUserFile";
+my $phtml = &virtual_server::public_html_dir($d);
 foreach my $l (&apache::find_directive_struct("Location", $vconf)) {
 	if ($l->{'words'}->[0] =~ /^\/dav\/(\S+)$/ && $aliases{$1}) {
 		# Found one
 		my $s = { 'dir' => $1,
+			  'fulldir' => $l->{'words'}->[0],
 			  'location' => $l,
 			  'alias' => $aliases{$1},
 			  'path' => $aliases{$1}->{'words'}->[1],
 		 	};
+		$s->{'relpath'} = $s->{'path'};
+		$s->{'relpath'} =~ s/^\Q$d->{'home'}\/\E//;
+		$s->{'samepath'} = $s->{'path'} eq $phtml."/".$s->{'dir'};
 		my $uf = &apache::find_directive($auf, $l->{'members'});
 		$s->{'users'} = $uf;
 		$s->{'realm'} = &apache::find_directive("AuthName",
@@ -110,22 +115,11 @@ my @ports = ( $d->{'web_port'} );
 if ($d->{'ssl'}) {
 	push(@ports, $d->{'web_sslport'});
 	}
-my $phtml = &virtual_server::public_html_dir($d);
+my $ok = 0;
 foreach my $p (@ports) {
-	my ($virt, $vconf, $conf) = &virtual_server::get_apache_virtual(
-					$d->{'dom'}, $p);
-	next if (!$virt);
-	# XXX existing aliases!
-	&apache::save_directive("Alias",
-				[ "/dav/$s->{'dir'} $phtml/$s->{'dir'}" ],
-				$vconf, $conf);
-	my $loc = { 'name' => 'Location',
-		    'value' => "/dav/$s->{'dir'}",
-		    'members' => [ ] };
-	&flush_file_lines($virt->{'file'});
+	$ok++ if (&add_dav_directives($d, $p, $s->{'dir'}));
 	}
-# XXX
-# XXX pick and create users file
+return $ok;
 }
 
 # delete_dav_share(&domain, &share)

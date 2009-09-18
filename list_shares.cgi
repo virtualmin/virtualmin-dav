@@ -18,12 +18,14 @@ $ddesc = &virtual_server::domain_in($d);
 if (@shares) {
 	# Show list of shares
 	print &ui_columns_start([ $text{'shares_dir'},
+				  $text{'shares_relpath'},
 				  $text{'shares_realm'},
 				  $text{'shares_users'} ], 100);
 	foreach $s (@shares) {
 		print &ui_columns_row([
 			"<a href='edit_share.cgi?dom=$in{'dom'}&".
-			  "dir=$s->{'dir'}'>$s->{'dir'}</a>",
+			  "dir=$s->{'fulldir'}'>$s->{'dir'}</a>",
+			$s->{'relpath'},
 			$s->{'realm'},
 			$users,
 			]);
