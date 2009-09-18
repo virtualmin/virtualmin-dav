@@ -105,7 +105,25 @@ return @rv;
 # Create a new share with the given directory and description
 sub create_dav_share
 {
-my ($d, $share) = @_;
+my ($d, $s) = @_;
+my @ports = ( $d->{'web_port'} );
+if ($d->{'ssl'}) {
+	push(@ports, $d->{'web_sslport'});
+	}
+my $phtml = &virtual_server::public_html_dir($d);
+foreach my $p (@ports) {
+	my ($virt, $vconf, $conf) = &virtual_server::get_apache_virtual(
+					$d->{'dom'}, $p);
+	next if (!$virt);
+	# XXX existing aliases!
+	&apache::save_directive("Alias",
+				[ "/dav/$s->{'dir'} $phtml/$s->{'dir'}" ],
+				$vconf, $conf);
+	my $loc = { 'name' => 'Location',
+		    'value' => "/dav/$s->{'dir'}",
+		    'members' => [ ] };
+	&flush_file_lines($virt->{'file'});
+	}
 # XXX
 # XXX pick and create users file
 }
@@ -114,7 +132,7 @@ my ($d, $share) = @_;
 # Removes the alias and location for a DAV share, and deletes the users file
 sub delete_dav_share
 {
-my ($d, $share) = @_;
+my ($d, $s) = @_;
 # XXX
 }
 
@@ -122,8 +140,104 @@ my ($d, $share) = @_;
 # Updates the description for a DAV share
 sub modify_dav_share
 {
-my ($d, $share) = @_;
+my ($d, $s) = @_;
 # XXX
+}
+
+# add_dav_directives(&dom, port, [subdir])
+# Finds a matching Apache virtualhost section, and adds the DAV directives
+sub add_dav_directives
+{
+local ($d, $port, $dir) = @_;
+local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'}, $port);
+return 0 if (!$virt);
+
+# Add Alias if missing
+local $phtml = &virtual_server::public_html_dir($d);
+local @aliases = &apache::find_directive("Alias", $vconf);
+local $davpath = "/dav".($dir ? "/".$dir : "");
+local $dirpath = $phtml.($dir ? "/".$dir : "");
+local $avalue = $davpath." ".$dirpath;
+if (&indexof($avalue, @aliases) < 0) {
+	push(@aliases, $avalue);
+	&apache::save_directive("Alias", \@aliases, $vconf, $conf);
+	}
+
+# Add Location if missing
+local $passwd_file = &digest_file($d);
+local @locs = &apache::find_directive_struct("Location", $vconf);
+local ($loc) = grep { $_->{'words'}->[0] eq $davpath } @locs;
+if (!$loc) {
+	local $at = $d->{'dav_auth'};
+	local $auf = $at eq "Digest" &&
+		     $apache::httpd_modules{'core'} < 2.2 ?
+			"AuthDigestFile" : "AuthUserFile";
+	local @mems = (
+		{ 'name' => 'DAV', 'value' => 'on' },
+		{ 'name' => 'AuthType', 'value' => $at },
+		{ 'name' => 'AuthName', 'value' => $d->{'dom'} },
+		{ 'name' => $auf, 'value' => $passwd_file },
+		{ 'name' => 'Require', 'value' => 'valid-user' },
+		{ 'name' => 'ForceType', 'value' => 'text/plain' },
+		{ 'name' => 'Satisfy', 'value' => 'All' },
+		);
+	if ($at eq "Digest" && $apache::httpd_modules{'core'} >= 2.2) {
+		push(@mems, { 'name' => 'AuthDigestProvider',
+			      'value' => 'file' });
+		}
+	if (defined(&virtual_server::list_available_php_versions)) {
+		# Turn off fast CGI handling of .php* scripts when they
+		# are accessed via DAV
+		push(@mems, { 'name' => 'RemoveHandler', 'value' => '.php' });
+		foreach my $v (
+		    &virtual_server::list_available_php_versions($d)) {
+			push(@mems, { 'name' => 'RemoveHandler',
+				      'value' => '.php'.$v->[0] });
+			}
+		}
+	if ($apache::httpd_modules{'mod_rewrite'}) {
+		push(@mems, { 'name' => 'RewriteEngine', 'value' => 'off' });
+		}
+	$loc = { 'name' => 'Location',
+		 'value' => $davpath,
+		 'type' => 1,
+		 'members' => \@mems };
+	&apache::save_directive_struct(undef, $loc, $vconf, $conf);
+	}
+&flush_file_lines($virt->{'file'});
+return 1;
+}
+
+# remove_dav_directives(&domain, port, [subdir])
+sub remove_dav_directives
+{
+local ($d, $port, $dir) = @_;
+local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'}, $port);
+return 0 if (!$virt);
+
+# Remove the alias
+local $phtml = &virtual_server::public_html_dir($d);
+local @aliases = &apache::find_directive("Alias", $vconf);
+local $davpath = "/dav".($dir ? "/".$dir : "");
+local $dirpath = $phtml.($dir ? "/".$dir : "");
+local $avalue = $davpath." ".$dirpath;
+local $idx = &indexof($avalue, @aliases);
+if ($idx >= 0) {
+	splice(@aliases, $idx, 1);
+	&apache::save_directive("Alias", \@aliases, $vconf, $conf);
+	}
+
+# Remove the Location
+local @locs = &apache::find_directive_struct("Location", $vconf);
+local ($loc) = grep { $_->{'words'}->[0] eq $davpath } @locs;
+if ($loc) {
+	&apache::save_directive_struct($loc, undef, $vconf, $conf);
+	}
+if ($loc || $idx >= 0) {
+	&flush_file_lines($virt->{'file'});
+	return 1;
+	}
+return 0;
 }
 
 1;

@@ -149,68 +149,6 @@ if (defined(&virtual_server::setup_noproxy_path)) {
 &virtual_server::release_lock_web($_[0]);
 }
 
-# add_dav_directives(&dom, port)
-# Finds a matching Apache virtualhost section, and adds the DAV directives
-sub add_dav_directives
-{
-local ($d, $port) = @_;
-local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'}, $port);
-if ($virt) {
-	local $passwd_file = &digest_file($d);
-	local $lref = &read_file_lines($virt->{'file'});
-	local ($aliasline, $locstart, $locend) =
-		&find_dav_lines($lref, $virt->{'line'}, $virt->{'eline'});
-	local @lines;
-	if (!$aliasline) {
-		local $phtml = defined(&virtual_server::public_html_dir) ?
-			&virtual_server::public_html_dir($d) :
-			"$d->{'home'}/public_html";
-		push(@lines, "Alias /dav $phtml");
-		}
-	if (!$locstart) {
-		local $at = $_[0]->{'dav_auth'};
-		local $auf = $at eq "Digest" &&
-			     $apache::httpd_modules{'core'} < 2.2 ?
-				"AuthDigestFile" : "AuthUserFile";
-		local @adp = $at eq "Digest" &&
-			     $apache::httpd_modules{'core'} >= 2.2 ?
-				("AuthDigestProvider file") : ( );
-		local @rhandlers;
-		if (defined(&virtual_server::list_available_php_versions)) {
-			# Turn off fast CGI handling of .php* scripts when they
-			# are accessed via DAV
-			push(@rhandlers, "RemoveHandler .php");
-			foreach my $v (
-			    &virtual_server::list_available_php_versions($d)) {
-				push(@rhandlers, "RemoveHandler .php$v->[0]");
-				}
-			}
-		local @norewrite;
-		if ($apache::httpd_modules{'mod_rewrite'}) {
-			@norewrite = ( "RewriteEngine off" );
-			}
-		push(@lines,
-		       "<Location /dav>",
-		       "DAV On",
-		       "AuthType $at",
-		       "AuthName $d->{'dom'}",
-		       "$auf $passwd_file",
-		       @adp,
-		       "Require valid-user",
-		       "ForceType text/plain",
-		       "Satisfy All",
-		       @rhandlers,
-		       @norewrite,
-		       "</Location>");
-		}
-	splice(@$lref, $virt->{'eline'}, 0, @lines);
-	&flush_file_lines();
-	undef(@apache::get_config_cache);
-	return 1;
-	}
-return 0;
-}
-
 # feature_modify(&domain, &olddomain)
 # Called when a domain with this feature is modified
 sub feature_modify
@@ -308,47 +246,6 @@ else {
 	}
 }
 
-sub remove_dav_directives
-{
-local ($d, $port) = @_;
-local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'}, $port);
-if ($virt) {
-	local $lref = &read_file_lines($virt->{'file'});
-	local ($aliasline, $locstart, $locend) =
-		&find_dav_lines($lref, $virt->{'line'}, $virt->{'eline'});
-	if ($locstart) {
-		splice(@$lref, $locstart, $locend-$locstart+1);
-		}
-	if ($aliasline) {
-		splice(@$lref, $aliasline, 1);
-		}
-	&flush_file_lines();
-	undef(@apache::get_config_cache);
-	return 1;
-	}
-else {
-	return 0;
-	}
-}
-
-# find_dav_lines(&lref, start, end)
-sub find_dav_lines
-{
-local ($aliasline, $locstart, $locend, $i);
-for($i=$_[1]; $i<=$_[2]; $i++) {
-	if ($_[0]->[$i] =~ /^\s*Alias\s+\/dav\s/i) {
-		$aliasline = $i;
-		}
-	elsif ($_[0]->[$i] =~ /^\s*<Location\s+\/dav>/i && !$locstart) {
-		$locstart = $i;
-		}
-	elsif ($_[0]->[$i] =~ /^\s*<\/Location>/i && $locstart && !$locend) {
-		$locend = $i;
-		}
-	}
-return ($aliasline, $locstart, $locend);
-}
-
 # feature_webmin(&domain)
 # Returns a list of webmin module names and ACL hash references to be set for
 # the Webmin user when this feature is enabled
@@ -414,11 +311,10 @@ local $passwd_file = &digest_file($d);
 -r $passwd_file || return &text('feat_evalidatefile', "<tt>$passwd_file</tt>");
 local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'}, $port);
 $virt || return &virtual_server::text('validate_eweb', $d->{'dom'});
-local $lref = &read_file_lines($virt->{'file'});
-local ($aliasline, $locstart, $locend) =
-	&find_dav_lines($lref, $virt->{'line'}, $virt->{'eline'});
-$aliasline || return &text('feat_evalidatealias');
-$locstart || return &text('feat_evalidateloc');
+local @aliases = &apache::find_directive("Alias", $vconf, 1);
+&indexof("/dav", @aliases) >= 0 || return &text('feat_evalidatealias');
+local @locs = &apache::find_directive("Location", $vconf, 1);
+&indexof("/dav", @locs) >= 0 || return &text('feat_evalidateloc');
 return undef;
 }
 
