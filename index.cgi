@@ -54,6 +54,3 @@ print &ui_form_end([ [ "change", $text{'index_change'} ] ]);
 
 &ui_print_footer("/", $text{'index'});
 
-
-1;
-

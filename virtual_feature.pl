@@ -672,11 +672,17 @@ else {
 sub feature_links
 {
 local ($dom) = @_;
-return { 'mod' => $module_name,
-	 'page' => "index.cgi?dom=$dom->{'id'}",
-	 'desc' => $text{'index_desc'},
-	 'cat' => 'services',
-       };
+return ( { 'mod' => $module_name,
+	   'page' => "index.cgi?dom=$dom->{'id'}",
+	   'desc' => $text{'index_desc'},
+	   'cat' => 'services',
+         },
+	 { 'mod' => $module_name,
+	   'page' => "list_shares.cgi?dom=$dom->{'id'}",
+	   'desc' => $text{'shares_link'},
+	   'cat' => 'services',
+         },
+       );
 }
 
 1;

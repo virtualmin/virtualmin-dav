@@ -64,7 +64,67 @@ else {
 	}
 }
 
+# list_dav_shares(&domain)
+# Returns a list of hash refs for sub-directories under public_html with /dav
+# paths mapped to them.
+sub list_dav_shares
+{
+my ($d) = @_;
+my ($virt, $vconf, $conf) = &virtual_server::get_apache_virtual(
+				$d->{'dom'}, $d->{'web_port'});
+return ( ) if (!$virt);
+my @rv;
+my %aliases;
+foreach my $a (&apache::find_directive_struct("Alias", $vconf)) {
+	if ($a->{'words'}->[0] =~ /^\/dav\/(\S+)$/) {
+		$aliases{$1} = $a;
+		}
+	}
+my $auf = $d->{'dav_auth'} eq "Digest" &&
+	  $apache::httpd_modules{'core'} < 2.2 ? "AuthDigestFile"
+					       : "AuthUserFile";
+foreach my $l (&apache::find_directive_struct("Location", $vconf)) {
+	if ($l->{'words'}->[0] =~ /^\/dav\/(\S+)$/ && $aliases{$1}) {
+		# Found one
+		my $s = { 'dir' => $1,
+			  'location' => $l,
+			  'alias' => $aliases{$1},
+			  'path' => $aliases{$1}->{'words'}->[1],
+		 	};
+		my $uf = &apache::find_directive($auf, $l->{'members'});
+		$s->{'users'} = $uf;
+		$s->{'realm'} = &apache::find_directive("AuthName",
+							$l->{'members'});
+		push(@rv, $s);
+		}
+	}
+return @rv;
+}
 
+# create_dav_share(&domain, &share)
+# Create a new share with the given directory and description
+sub create_dav_share
+{
+my ($d, $share) = @_;
+# XXX
+# XXX pick and create users file
+}
+
+# delete_dav_share(&domain, &share)
+# Removes the alias and location for a DAV share, and deletes the users file
+sub delete_dav_share
+{
+my ($d, $share) = @_;
+# XXX
+}
+
+# modify_dav_share(&domain, &share
+# Updates the description for a DAV share
+sub modify_dav_share
+{
+my ($d, $share) = @_;
+# XXX
+}
 
 1;
 

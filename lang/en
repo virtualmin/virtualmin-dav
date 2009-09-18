@@ -51,3 +51,9 @@ save_err=Failed to change DAV authentication
 save_enone=No changes made
 save_save=Saving virtual server ..
 save_recreate=Re-creating DAV users ..
+
+shares_title=DAV Shares
+shares_link=DAV Shares
+shares_dir=Sub-directory
+shares_realm=Description
+shares_users=Users with access
