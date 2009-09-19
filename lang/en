@@ -68,4 +68,10 @@ share_dir=URL path to share
 share_path=Directory under home
 share_samepath=Same as URL path
 share_realm=Share description
-
+share_egone=This share no longer exists!
+share_err=Failed to save DAV share
+share_egone=This share no longer exists!
+share_eclash=A share for the same URL path already exists
+share_edir=Missing or invalid URL path - no slash is needed at the start
+share_epath=Missing or invalid directory under home - no slash is needed at the start
+share_erealm=Missing share description

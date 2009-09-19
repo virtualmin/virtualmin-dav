@@ -117,7 +117,8 @@ if ($d->{'ssl'}) {
 	}
 my $ok = 0;
 foreach my $p (@ports) {
-	$ok++ if (&add_dav_directives($d, $p, $s->{'dir'}));
+	$ok++ if (&add_dav_directives($d, $p, $s->{'dir'}, $s->{'path'},
+				      $s->{'realm'}));
 	}
 return $ok;
 }
@@ -127,30 +128,72 @@ return $ok;
 sub delete_dav_share
 {
 my ($d, $s) = @_;
-# XXX
+my @ports = ( $d->{'web_port'} );
+if ($d->{'ssl'}) {
+	push(@ports, $d->{'web_sslport'});
+	}
+my $ok = 0;
+foreach my $p (@ports) {
+	$ok++ if (&remove_dav_directives($d, $p, $s->{'dir'}, $s->{'path'}));
+	}
+return $ok;
 }
 
-# modify_dav_share(&domain, &share
+# modify_dav_share(&domain, &share)
 # Updates the description for a DAV share
 sub modify_dav_share
 {
 my ($d, $s) = @_;
-# XXX
+my @ports = ( $d->{'web_port'} );
+if ($d->{'ssl'}) {
+	push(@ports, $d->{'web_sslport'});
+	}
+
+foreach my $port (@ports) {
+	my ($virt, $vconf, $conf) =
+		&virtual_server::get_apache_virtual($d->{'dom'}, $port);
+	next if (!$virt);
+
+	# Find Alias and change path
+	local $phtml = &virtual_server::public_html_dir($d);
+	local @aliases = &apache::find_directive("Alias", $vconf);
+	my $idx = -1;
+	my $davpath = "/dav".($dir ? "/".$dir : "");
+	for(my $i=0; $i<@aliases; $idx++) {
+		if ($aliases[$i] =~ /^\Q$davpath\E\s/) {
+			$aliases[$i] = $davpath." ".$path;
+			last;
+			}
+		}
+	&apache::save_directive("Alias", \@aliases, $vconf, $conf);
+
+	# Find Location and change realm
+	local @locs = &apache::find_directive_struct("Location", $vconf);
+	local ($loc) = grep { $_->{'words'}->[0] eq $davpath } @locs;
+	if ($loc) {
+		&apache::save_directive("AuthName", [ "\"$s->{'realm'}\"" ],
+					$loc->{'members'}, $conf);
+		}
+	&flush_file_lines($virt->{'file'});
+	}
+
+return 1;
 }
 
-# add_dav_directives(&dom, port, [subdir])
+# add_dav_directives(&dom, port, [subdir, path, realm])
 # Finds a matching Apache virtualhost section, and adds the DAV directives
 sub add_dav_directives
 {
-local ($d, $port, $dir) = @_;
-local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'}, $port);
+local ($d, $port, $dir, $dirpath, $realm) = @_;
+local ($virt, $vconf, $conf) =
+	&virtual_server::get_apache_virtual($d->{'dom'}, $port);
 return 0 if (!$virt);
 
 # Add Alias if missing
 local $phtml = &virtual_server::public_html_dir($d);
 local @aliases = &apache::find_directive("Alias", $vconf);
 local $davpath = "/dav".($dir ? "/".$dir : "");
-local $dirpath = $phtml.($dir ? "/".$dir : "");
+$dirpath ||= $phtml;
 local $avalue = $davpath." ".$dirpath;
 if (&indexof($avalue, @aliases) < 0) {
 	push(@aliases, $avalue);
@@ -169,7 +212,8 @@ if (!$loc) {
 	local @mems = (
 		{ 'name' => 'DAV', 'value' => 'on' },
 		{ 'name' => 'AuthType', 'value' => $at },
-		{ 'name' => 'AuthName', 'value' => $d->{'dom'} },
+		{ 'name' => 'AuthName',
+		  'value' => '"'.($realm || $d->{'dom'}).'"' },
 		{ 'name' => $auf, 'value' => $passwd_file },
 		{ 'name' => 'Require', 'value' => 'valid-user' },
 		{ 'name' => 'ForceType', 'value' => 'text/plain' },
@@ -202,20 +246,25 @@ if (!$loc) {
 return 1;
 }
 
-# remove_dav_directives(&domain, port, [subdir])
+# remove_dav_directives(&domain, port, [subdir, path])
 sub remove_dav_directives
 {
-local ($d, $port, $dir) = @_;
-local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'}, $port);
+local ($d, $port, $dir, $dirpath) = @_;
+local ($virt, $vconf, $conf) =
+	&virtual_server::get_apache_virtual($d->{'dom'}, $port);
 return 0 if (!$virt);
 
 # Remove the alias
 local $phtml = &virtual_server::public_html_dir($d);
 local @aliases = &apache::find_directive("Alias", $vconf);
-local $davpath = "/dav".($dir ? "/".$dir : "");
-local $dirpath = $phtml.($dir ? "/".$dir : "");
-local $avalue = $davpath." ".$dirpath;
-local $idx = &indexof($avalue, @aliases);
+my $idx = -1;
+my $davpath = "/dav".($dir ? "/".$dir : "");
+for(my $i=0; $i<@aliases; $idx++) {
+	if ($aliases[$i] =~ /^\Q$davpath\E\s/) {
+		$idx = $i;
+		last;
+		}
+	}
 if ($idx >= 0) {
 	splice(@aliases, $idx, 1);
 	&apache::save_directive("Alias", \@aliases, $vconf, $conf);
