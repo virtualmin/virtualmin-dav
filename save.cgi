@@ -3,7 +3,6 @@
 
 require './virtualmin-dav-lib.pl';
 require './virtual_feature.pl';
-&foreign_require("virtual-server", "virtual-server-lib.pl");
 &ReadParse();
 $in{'dom'} || &error($text{'index_edom'});
 $d = &virtual_server::get_domain($in{'dom'});

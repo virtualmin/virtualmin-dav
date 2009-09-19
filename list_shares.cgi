@@ -2,7 +2,6 @@
 # Show a list of DAV sub-directories to which users can be granted access
 
 require './virtualmin-dav-lib.pl';
-&foreign_require("virtual-server", "virtual-server-lib.pl");
 &ReadParse();
 $in{'dom'} || &error($text{'index_edom'});
 $d = &virtual_server::get_domain($in{'dom'});
@@ -24,7 +23,7 @@ if (@shares) {
 	foreach $s (@shares) {
 		print &ui_columns_row([
 			"<a href='edit_share.cgi?dom=$in{'dom'}&".
-			  "dir=$s->{'fulldir'}'>$s->{'dir'}</a>",
+			  "dir=$s->{'dir'}'>$s->{'fulldir'}</a>",
 			$s->{'relpath'},
 			$s->{'realm'},
 			$users,

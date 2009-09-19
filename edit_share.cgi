@@ -2,7 +2,6 @@
 # Show a form to create or edit a DAV share
 
 require './virtualmin-dav-lib.pl';
-&foreign_require("virtual-server", "virtual-server-lib.pl");
 &ReadParse();
 $in{'dom'} || &error($text{'index_edom'});
 $d = &virtual_server::get_domain($in{'dom'});
@@ -22,7 +21,6 @@ else {
 print &ui_form_start("save_share.cgi", "post");
 print &ui_hidden("dom", $in{'dom'});
 print &ui_hidden("new", $in{'new'});
-print &ui_hidden("dir", $in{'dir'});
 print &ui_table_start($text{'share_header'}, undef, 2);
 
 # DAV path
@@ -32,6 +30,7 @@ if ($in{'new'}) {
 	}
 else {
 	print &ui_table_row($text{'share_dir'}, "<tt>$s->{'fulldir'}</tt>");
+	print &ui_hidden("dir", $in{'dir'});
 	}
 
 # Actual directory under home

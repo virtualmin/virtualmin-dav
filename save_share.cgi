@@ -2,7 +2,6 @@
 # Create, update or delete a DAV share
 
 require './virtualmin-dav-lib.pl';
-&foreign_require("virtual-server", "virtual-server-lib.pl");
 &ReadParse();
 $in{'dom'} || &error($text{'index_edom'});
 $d = &virtual_server::get_domain($in{'dom'});
@@ -21,13 +20,13 @@ else {
 
 if ($in{'delete'}) {
 	# Just delete it
-	&delete_dav_share($d, $d);
+	&delete_dav_share($d, $s);
 	}
 else {
 	# Validate inputs
 	if ($in{'new'}) {
 		# Check for clash
-		($clash) = grep { $->{'dir'} eq $in{'dir'} } @shares;
+		($clash) = grep { $_->{'dir'} eq $in{'dir'} } @shares;
 		$clash && &error($text{'share_eclash'});
 		$in{'dir'} =~ /^\S+$/ && $in{'dir'} !~ /^\// ||
 			&error($text{'share_edir'});
@@ -57,10 +56,11 @@ else {
 		&modify_dav_share($d, $s);
 		}
 	}
-
+&virtual_server::set_all_null_print();
+&virtual_server::run_post_actions();
 
 &virtual_server::release_lock_web($d);
 &webmin_log($in{'delete'} ? 'delete' : $in{'new'} ? 'create' : 'modify',
 	    'share', $s->{'dir'});
-&redirect("list_shares.cgi");
+&redirect("list_shares.cgi?dom=$in{'dom'}");
 

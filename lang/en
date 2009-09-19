@@ -60,6 +60,7 @@ shares_realm=Description
 shares_users=Users with access
 shares_none=No additional DAV shares have been created yet.
 shares_add=Add a new DAV share.
+shares_return=list of shares
 
 share_title1=Create DAV Share
 share_title2=Edit DAV Share

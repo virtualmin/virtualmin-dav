@@ -7,6 +7,7 @@ if ($@) {
 	do '../ui-lib.pl';
 	}
 &init_config();
+&foreign_require("virtual-server", "virtual-server-lib.pl");
 $config{'auth'} ||= "Digest";
 
 # digest_file(&domain)
@@ -99,7 +100,7 @@ foreach my $l (&apache::find_directive_struct("Location", $vconf)) {
 		my $uf = &apache::find_directive($auf, $l->{'members'});
 		$s->{'users'} = $uf;
 		$s->{'realm'} = &apache::find_directive("AuthName",
-							$l->{'members'});
+							$l->{'members'}, 1);
 		push(@rv, $s);
 		}
 	}
@@ -120,6 +121,7 @@ foreach my $p (@ports) {
 	$ok++ if (&add_dav_directives($d, $p, $s->{'dir'}, $s->{'path'},
 				      $s->{'realm'}));
 	}
+&virtual_server::register_post_action(\&virtual_server::restart_apache);
 return $ok;
 }
 
@@ -136,6 +138,7 @@ my $ok = 0;
 foreach my $p (@ports) {
 	$ok++ if (&remove_dav_directives($d, $p, $s->{'dir'}, $s->{'path'}));
 	}
+&virtual_server::register_post_action(\&virtual_server::restart_apache);
 return $ok;
 }
 
@@ -158,10 +161,10 @@ foreach my $port (@ports) {
 	local $phtml = &virtual_server::public_html_dir($d);
 	local @aliases = &apache::find_directive("Alias", $vconf);
 	my $idx = -1;
-	my $davpath = "/dav".($dir ? "/".$dir : "");
-	for(my $i=0; $i<@aliases; $idx++) {
-		if ($aliases[$i] =~ /^\Q$davpath\E\s/) {
-			$aliases[$i] = $davpath." ".$path;
+	my $davpath = "/dav/".$s->{'dir'};
+	for(my $i=0; $i<@aliases; $i++) {
+		if ($aliases[$i] =~ /^\Q$davpath\E\s+(\S+)/) {
+			$aliases[$i] = $davpath." ".$s->{'path'};
 			last;
 			}
 		}
@@ -175,6 +178,7 @@ foreach my $port (@ports) {
 					$loc->{'members'}, $conf);
 		}
 	&flush_file_lines($virt->{'file'});
+	&virtual_server::register_post_action(\&virtual_server::restart_apache);
 	}
 
 return 1;
@@ -259,7 +263,7 @@ local $phtml = &virtual_server::public_html_dir($d);
 local @aliases = &apache::find_directive("Alias", $vconf);
 my $idx = -1;
 my $davpath = "/dav".($dir ? "/".$dir : "");
-for(my $i=0; $i<@aliases; $idx++) {
+for(my $i=0; $i<@aliases; $i++) {
 	if ($aliases[$i] =~ /^\Q$davpath\E\s/) {
 		$idx = $i;
 		last;
