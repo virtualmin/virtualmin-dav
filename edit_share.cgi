@@ -34,9 +34,15 @@ else {
 	}
 
 # Actual directory under home
-print &ui_table_row($text{'share_path'},
-	&ui_opt_textbox("relpath", $s->{'samepath'} ? undef : $s->{'relpath'},
-			30, $text{'share_samepath'}));
+if ($s->{'main'}) {
+	print &ui_table_row($text{'share_path'}, "<tt>$s->{'relpath'}</tt>");
+	}
+else {
+	print &ui_table_row($text{'share_path'},
+		&ui_opt_textbox("relpath",
+				$s->{'samepath'} ? undef : $s->{'relpath'},
+				30, $text{'share_samepath'}));
+	}
 
 # Realm name
 print &ui_table_row($text{'share_realm'},
@@ -48,9 +54,10 @@ if ($in{'new'}) {
 	}
 else {
 	print &ui_form_end([ [ undef, $text{'save'} ],
-			     [ 'delete', $text{'delete'} ] ]);
+			     $s->{'main'} ? ( ) : ( [ 'delete',
+						      $text{'delete'} ] ) ]);
 	}
 
-&ui_print_footer("list_shares.cgi", $text{'shares_return'},
+&ui_print_footer("list_shares.cgi?dom=$in{'dom'}", $text{'shares_return'},
 		 &virtual_server::domain_footer_link($d));
 

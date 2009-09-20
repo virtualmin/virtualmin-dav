@@ -49,6 +49,15 @@ else {
 	$in{'realm'} =~ /\S/ || &error($text{'share_erealm'});
 	$s->{'realm'} = $in{'realm'};
 
+	# Create the dir if needed
+	if (!-d $s->{'path'}) {
+		&virtual_server::make_dir_as_domain_user($d, $s->{'path'},
+							 0755, 1);
+		# XXX set permissions as mentioned by filip?
+		# XXX or from existing code
+		}
+
+	# Create the Apache config
 	if ($in{'new'}) {
 		&create_dav_share($d, $s);
 		}

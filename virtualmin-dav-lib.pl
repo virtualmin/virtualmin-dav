@@ -77,8 +77,10 @@ return ( ) if (!$virt);
 my @rv;
 my %aliases;
 foreach my $a (&apache::find_directive_struct("Alias", $vconf)) {
-	if ($a->{'words'}->[0] =~ /^\/dav\/(\S+)$/) {
-		$aliases{$1} = $a;
+	if ($a->{'words'}->[0] =~ /^\/dav\/(\S+)$/ ||
+	    $a->{'words'}->[0] eq "/dav") {
+		my $dir = $a->{'words'}->[0] eq "/dav" ? "" : $1;
+		$aliases{$dir} = $a;
 		}
 	}
 my $auf = $d->{'dav_auth'} eq "Digest" &&
@@ -86,13 +88,17 @@ my $auf = $d->{'dav_auth'} eq "Digest" &&
 					       : "AuthUserFile";
 my $phtml = &virtual_server::public_html_dir($d);
 foreach my $l (&apache::find_directive_struct("Location", $vconf)) {
-	if ($l->{'words'}->[0] =~ /^\/dav\/(\S+)$/ && $aliases{$1}) {
+	if ($l->{'words'}->[0] =~ /^\/dav\/(\S+)$/ ||
+	    $l->{'words'}->[0] eq "/dav") {
 		# Found one
-		my $s = { 'dir' => $1,
+		my $dir = $l->{'words'}->[0] eq "/dav" ? "" : $1;
+		next if (!$aliases{$dir});
+		my $s = { 'dir' => $dir,
+			  'main' => !$dir,
 			  'fulldir' => $l->{'words'}->[0],
 			  'location' => $l,
-			  'alias' => $aliases{$1},
-			  'path' => $aliases{$1}->{'words'}->[1],
+			  'alias' => $aliases{$dir},
+			  'path' => $aliases{$dir}->{'words'}->[1],
 		 	};
 		$s->{'relpath'} = $s->{'path'};
 		$s->{'relpath'} =~ s/^\Q$d->{'home'}\/\E//;
