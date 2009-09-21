@@ -22,6 +22,17 @@ if (@shares) {
 				  $text{'shares_realm'},
 				  $text{'shares_users'} ], 100);
 	foreach $s (@shares) {
+		if (!$s->{'users'}) {
+			$users = "<i>$text{'shares_all'}</i>";
+			}
+		else {
+			my @users = @{$s->{'users'}};
+			if (@users > 4) {
+				@users = ( @users[0..3],
+				   &text('shares_uc', scalar(@users)-4) );
+				}
+			$users = join(" , ", @users);
+			}
 		print &ui_columns_row([
 			"<a href='edit_share.cgi?dom=$in{'dom'}&".
 			  "dir=$s->{'dir'}'>$s->{'fulldir'}</a>",

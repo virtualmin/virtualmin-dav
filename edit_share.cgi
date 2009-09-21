@@ -48,6 +48,17 @@ else {
 print &ui_table_row($text{'share_realm'},
 	&ui_textbox("realm", $s->{'realm'}, 50));
 
+# Allowed users
+@allusers = map { [ $_->{'user'}, $_->{'user'} ] } &list_users($d);
+@selusers = $s->{'users'} ? ( map { [ $_, $_ ] } @{$s->{'users'}} )
+			  : ( );
+print &ui_table_row($text{'share_users'},
+	&ui_radio("users_def", $s->{'users'} ? 0 : 1,
+		  [ [ 1, $text{'share_users1'} ],
+		    [ 0, $text{'share_users0'} ] ])."<br>\n".
+	&ui_multi_select("users", \@selusers, \@allusers, 10, 1, 0,
+			 $text{'share_allusers'}, $text{'share_selusers'}));
+
 print &ui_table_end();
 if ($in{'new'}) {
 	print &ui_form_end([ [ undef, $text{'create'} ] ]);

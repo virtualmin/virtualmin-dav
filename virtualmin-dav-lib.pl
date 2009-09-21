@@ -103,10 +103,13 @@ foreach my $l (&apache::find_directive_struct("Location", $vconf)) {
 		$s->{'relpath'} = $s->{'path'};
 		$s->{'relpath'} =~ s/^\Q$d->{'home'}\/\E//;
 		$s->{'samepath'} = $s->{'path'} eq $phtml."/".$s->{'dir'};
-		my $uf = &apache::find_directive($auf, $l->{'members'});
-		$s->{'users'} = $uf;
 		$s->{'realm'} = &apache::find_directive("AuthName",
 							$l->{'members'}, 1);
+		my $reqs = &apache::wsplit(
+			&apache::find_directive("Require", $l->{'members'}));
+		if ($reqs->[0] ne "valid-user") {
+			$s->{'users'} = $reqs;
+			}
 		push(@rv, $s);
 		}
 	}
@@ -182,6 +185,17 @@ foreach my $port (@ports) {
 	if ($loc) {
 		&apache::save_directive("AuthName", [ "\"$s->{'realm'}\"" ],
 					$loc->{'members'}, $conf);
+		if ($s->{'users'}) {
+			# Limit to some users
+			&apache::save_directive("Require",
+						[ join(" ", @{$s->{'users'}}) ],
+						$loc->{'members'}, $conf);
+			}
+		else {
+			# Any user
+			&apache::save_directive("Require", [ "valid-user" ],
+						$loc->{'members'}, $conf);
+			}
 		}
 	&flush_file_lines($virt->{'file'});
 	&virtual_server::register_post_action(\&virtual_server::restart_apache);

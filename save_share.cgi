@@ -59,6 +59,16 @@ else {
 		# XXX or from existing code
 		}
 
+	# Save allowed users
+	if ($in{'users_def'}) {
+		delete($s->{'users'});
+		}
+	else {
+		@users = split(/\r?\n/, $in{'users'});
+		@users || &error($text{'share_eusers'});
+		$s->{'users'} = \@users;
+		}
+
 	# Create the Apache config
 	if ($in{'new'}) {
 		&create_dav_share($d, $s);

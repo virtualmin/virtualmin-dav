@@ -61,6 +61,8 @@ shares_users=Users with access
 shares_none=No additional DAV shares have been created yet.
 shares_add=Add a new DAV share.
 shares_return=list of shares
+shares_all=All users
+shares_uc=$1 more ..
 
 share_title1=Create DAV Share
 share_title2=Edit DAV Share
@@ -76,6 +78,12 @@ share_eclash=A share for the same URL path already exists
 share_edir=Missing or invalid URL path - no slash is needed at the start
 share_epath=Missing or invalid directory under home - no slash is needed at the start
 share_erealm=Missing share description
+share_users=Users with access
+share_users1=All users
+share_users0=Only selected ..
+share_allusers=Users with DAV
+share_selusers=Users for this share
+share_eusers=No users selected
 
 log_create_share=Created DAV share $1 in $2
 log_delete_share=Deleted DAV share $1 in $2
