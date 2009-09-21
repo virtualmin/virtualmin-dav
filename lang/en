@@ -76,3 +76,8 @@ share_eclash=A share for the same URL path already exists
 share_edir=Missing or invalid URL path - no slash is needed at the start
 share_epath=Missing or invalid directory under home - no slash is needed at the start
 share_erealm=Missing share description
+
+log_create_share=Created DAV share $1 in $2
+log_delete_share=Deleted DAV share $1 in $2
+log_modify_share=Modified DAV share $1 in $2
+log_auth=Changed authentication options in $1

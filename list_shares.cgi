@@ -16,6 +16,7 @@ $ddesc = &virtual_server::domain_in($d);
 	   $text{'shares_add'}."</a>" );
 if (@shares) {
 	# Show list of shares
+	print &ui_links_row(\@links);
 	print &ui_columns_start([ $text{'shares_dir'},
 				  $text{'shares_relpath'},
 				  $text{'shares_realm'},
@@ -33,9 +34,8 @@ if (@shares) {
 	}
 else {
 	print "<b>$text{'shares_none'}</b> <p>\n";
-	print &ui_links_row(\@links);
 	}
+print &ui_links_row(\@links);
 
-&ui_print_footer(&virtual_server::domain_footer_link($d),
-		 "", $text{'index_return'});
+&ui_print_footer(&virtual_server::domain_footer_link($d));
 

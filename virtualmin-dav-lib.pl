@@ -167,7 +167,7 @@ foreach my $port (@ports) {
 	local $phtml = &virtual_server::public_html_dir($d);
 	local @aliases = &apache::find_directive("Alias", $vconf);
 	my $idx = -1;
-	my $davpath = "/dav/".$s->{'dir'};
+	my $davpath = "/dav".($s->{'dir'} ? "/".$s->{'dir'} : "");
 	for(my $i=0; $i<@aliases; $i++) {
 		if ($aliases[$i] =~ /^\Q$davpath\E\s+(\S+)/) {
 			$aliases[$i] = $davpath." ".$s->{'path'};

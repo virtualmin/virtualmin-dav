@@ -33,17 +33,19 @@ else {
 		$s->{'dir'} = $in{'dir'};
 		}
 
-	if ($in{'relpath_def'}) {
-		# Same dir under public_html
-		$s->{'samepath'} = 1;
-		$s->{'path'} = &virtual_server::public_html_dir($d).
-			       "/".$in{'dir'};
-		}
-	else {
-		$in{'relpath'} =~ /^\S+$/ && $in{'relpath'} !~ /^\// ||
-			&error($text{'share_epath'});
-		$s->{'samepath'} = 0;
-		$s->{'path'}  = $d->{'home'}.'/'.$in{'relpath'};
+	if (!$s->{'main'}) {
+		if ($in{'relpath_def'}) {
+			# Same dir under public_html
+			$s->{'samepath'} = 1;
+			$s->{'path'} = &virtual_server::public_html_dir($d).
+				       "/".$in{'dir'};
+			}
+		else {
+			$in{'relpath'} =~ /^\S+$/ && $in{'relpath'} !~ /^\// ||
+				&error($text{'share_epath'});
+			$s->{'samepath'} = 0;
+			$s->{'path'}  = $d->{'home'}.'/'.$in{'relpath'};
+			}
 		}
 
 	$in{'realm'} =~ /\S/ || &error($text{'share_erealm'});
@@ -70,6 +72,6 @@ else {
 
 &virtual_server::release_lock_web($d);
 &webmin_log($in{'delete'} ? 'delete' : $in{'new'} ? 'create' : 'modify',
-	    'share', $s->{'dir'});
+	    'share', $s->{'dir'}, { 'dom' => $d->{'dom'} });
 &redirect("list_shares.cgi?dom=$in{'dom'}");
 

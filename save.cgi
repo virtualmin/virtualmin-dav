@@ -69,6 +69,7 @@ foreach $u (@users) {
 &$virtual_server::second_print($virtual_server::text{'setup_done'});
 
 &virtual_server::run_post_actions();
+&webmin_log("modify", "auth", undef, { 'dom' => $d->{'dom'} });
 
 &ui_print_footer("index.cgi?dom=$in{'dom'}", $text{'index_return'});
 
