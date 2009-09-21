@@ -55,8 +55,11 @@ else {
 	if (!-d $s->{'path'}) {
 		&virtual_server::make_dir_as_domain_user($d, $s->{'path'},
 							 0755, 1);
-		# XXX set permissions as mentioned by filip?
-		# XXX or from existing code
+		my $web_user = &virtual_server::get_apache_user($d);
+		if ($web_user) {
+			&set_ownership_permissions($web_user, $d->{'gid'},
+						   6775, $s->{'path'});
+			}
 		}
 
 	# Save allowed users
@@ -67,6 +70,16 @@ else {
 		@users = split(/\r?\n/, $in{'users'});
 		@users || &error($text{'share_eusers'});
 		$s->{'users'} = \@users;
+		}
+
+	# Save read-write users
+	if ($in{'rwusers_def'}) {
+		delete($s->{'rwusers'});
+		}
+	else {
+		@rwusers = split(/\r?\n/, $in{'rwusers'});
+		@rwusers || &error($text{'share_erwusers'});
+		$s->{'rwusers'} = \@rwusers;
 		}
 
 	# Create the Apache config

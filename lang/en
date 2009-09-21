@@ -58,6 +58,7 @@ shares_dir=URL path
 shares_relpath=Directory under home
 shares_realm=Description
 shares_users=Users with access
+shares_rwusers=Users with write access
 shares_none=No additional DAV shares have been created yet.
 shares_add=Add a new DAV share.
 shares_return=list of shares
@@ -83,7 +84,9 @@ share_users1=All users
 share_users0=Only selected ..
 share_allusers=Users with DAV
 share_selusers=Users for this share
+share_rwusers=Users with write access
 share_eusers=No users selected
+share_erwusers=No users with write access selected
 
 log_create_share=Created DAV share $1 in $2
 log_delete_share=Deleted DAV share $1 in $2

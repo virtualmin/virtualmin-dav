@@ -1,0 +1,6 @@
+desc=Additional DAV shares
+html=Additional DAV shares that map URLs under /dav to other directories can now be created. For each share (and the default /dav path), read-write and read-only users can be configured separately.
+master=1
+domain=1
+reseller=1
+link=list_shares.cgi?dom=${ID}

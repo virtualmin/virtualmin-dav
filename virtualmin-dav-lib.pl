@@ -105,10 +105,23 @@ foreach my $l (&apache::find_directive_struct("Location", $vconf)) {
 		$s->{'samepath'} = $s->{'path'} eq $phtml."/".$s->{'dir'};
 		$s->{'realm'} = &apache::find_directive("AuthName",
 							$l->{'members'}, 1);
+
+		# Extract allowed users
 		my $reqs = &apache::wsplit(
 			&apache::find_directive("Require", $l->{'members'}));
 		if ($reqs->[0] ne "valid-user") {
 			$s->{'users'} = $reqs;
+			}
+
+		# Extract read-write users
+		my ($limit) = &apache::find_directive_struct(
+				"Limit", $l->{'members'});
+		if ($limit) {
+			my $reqs = &apache::wsplit(&apache::find_directive(
+					"Require", $limit->{'members'}));
+			if ($reqs->[0] ne "valid-user") {
+				$s->{'rwusers'} = $reqs;
+				}
 			}
 		push(@rv, $s);
 		}
@@ -195,6 +208,38 @@ foreach my $port (@ports) {
 			# Any user
 			&apache::save_directive("Require", [ "valid-user" ],
 						$loc->{'members'}, $conf);
+			}
+
+		# Save read-write users
+		my ($limit) = &apache::find_directive_struct(
+				"Limit", $loc->{'members'});
+		if ($limit || $s->{'rwusers'}) {
+			my $rwusers = join(" ", @{$s->{'rwusers'}});
+			if (!$limit) {
+				# Add new block for some users
+				&apache::save_directive_struct(
+					undef,
+					{ 'name' => 'Limit',
+					  'value' => 'POST PUT DELETE',
+					  'type' => 1,
+					  'members' =>  [
+					    { 'name' => 'Require',
+					      'value' => $rwusers },
+					  ]
+					},
+					$loc->{'members'}, $conf);
+				}
+			elsif ($s->{'rwusers'}) {
+				# Limit to some users, in existing block
+				&apache::save_directive("Require", [ $rwusers ],
+						$limit->{'members'}, $conf);
+				}
+			else {
+				# Any user, in existing block
+				&apache::save_directive("Require",
+						[ "valid-user" ],
+						$limit->{'members'}, $conf);
+				}
 			}
 		}
 	&flush_file_lines($virt->{'file'});

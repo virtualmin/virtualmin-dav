@@ -20,25 +20,17 @@ if (@shares) {
 	print &ui_columns_start([ $text{'shares_dir'},
 				  $text{'shares_relpath'},
 				  $text{'shares_realm'},
-				  $text{'shares_users'} ], 100);
+				  $text{'shares_users'},
+				  $text{'shares_rwusers'},
+				], 100);
 	foreach $s (@shares) {
-		if (!$s->{'users'}) {
-			$users = "<i>$text{'shares_all'}</i>";
-			}
-		else {
-			my @users = @{$s->{'users'}};
-			if (@users > 4) {
-				@users = ( @users[0..3],
-				   &text('shares_uc', scalar(@users)-4) );
-				}
-			$users = join(" , ", @users);
-			}
 		print &ui_columns_row([
 			"<a href='edit_share.cgi?dom=$in{'dom'}&".
 			  "dir=$s->{'dir'}'>$s->{'fulldir'}</a>",
 			$s->{'relpath'},
 			$s->{'realm'},
-			$users,
+			&make_nice_users($s->{'users'}),
+			&make_nice_users($s->{'rwusers'}),
 			]);
 		}
 	print &ui_columns_end();
@@ -50,3 +42,18 @@ print &ui_links_row(\@links);
 
 &ui_print_footer(&virtual_server::domain_footer_link($d));
 
+sub make_nice_users
+{
+my ($ulist) = @_;
+if (!$ulist) {
+	return "<i>$text{'shares_all'}</i>";
+	}
+else {
+	my @users = @$ulist;
+	if (@users > 4) {
+		@users = ( @users[0..3],
+		   &text('shares_uc', scalar(@users)-4) );
+		}
+	return join(" , ", @users);
+	}
+}

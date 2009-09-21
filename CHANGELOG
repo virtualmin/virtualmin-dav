@@ -2,3 +2,5 @@
 When a domain's admin password is changed and the domain owner has an DAV account, it is updated to match.
 ---- Changes since 3.1 ----
 Proxying for /dav is disabled, so that the DAV feature works even if some other script (like one using Rails) has a proxy for /.
+---- Changes since 3.3 ----
+Additional DAV shares that map URLs under /dav to other directories can now be created. For each share (and the default /dav path), read-write and read-only users can be configured separately.

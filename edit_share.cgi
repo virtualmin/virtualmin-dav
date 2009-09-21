@@ -59,6 +59,16 @@ print &ui_table_row($text{'share_users'},
 	&ui_multi_select("users", \@selusers, \@allusers, 10, 1, 0,
 			 $text{'share_allusers'}, $text{'share_selusers'}));
 
+# Read-write users
+@selrwusers = $s->{'rwusers'} ? ( map { [ $_, $_ ] } @{$s->{'rwusers'}} )
+			      : ( );
+print &ui_table_row($text{'share_rwusers'},
+	&ui_radio("rwusers_def", $s->{'rwusers'} ? 0 : 1,
+		  [ [ 1, $text{'share_users1'} ],
+		    [ 0, $text{'share_users0'} ] ])."<br>\n".
+	&ui_multi_select("rwusers", \@selrwusers, \@allusers, 10, 1, 0,
+			 $text{'share_allusers'}, $text{'share_selusers'}));
+
 print &ui_table_end();
 if ($in{'new'}) {
 	print &ui_form_end([ [ undef, $text{'create'} ] ]);
