@@ -106,6 +106,7 @@ foreach my $l (&apache::find_directive_struct("Location", $vconf)) {
 		my $reqs = &apache::wsplit(
 			&apache::find_directive("Require", $l->{'members'}));
 		if ($reqs->[0] ne "valid-user") {
+			shift(@$reqs);	# Remove 'user'
 			$s->{'users'} = $reqs;
 			}
 
@@ -116,6 +117,7 @@ foreach my $l (&apache::find_directive_struct("Location", $vconf)) {
 			my $reqs = &apache::wsplit(&apache::find_directive(
 					"Require", $limit->{'members'}));
 			if ($reqs->[0] ne "valid-user") {
+				shift(@$reqs);	# Remove 'user'
 				$s->{'rwusers'} = $reqs;
 				}
 			}
@@ -197,8 +199,8 @@ foreach my $port (@ports) {
 		if ($s->{'users'}) {
 			# Limit to some users
 			&apache::save_directive("Require",
-						[ join(" ", @{$s->{'users'}}) ],
-						$loc->{'members'}, $conf);
+					[ join(" ", "user", @{$s->{'users'}}) ],
+					$loc->{'members'}, $conf);
 			}
 		else {
 			# Any user
@@ -210,7 +212,7 @@ foreach my $port (@ports) {
 		my ($limit) = &apache::find_directive_struct(
 				"Limit", $loc->{'members'});
 		if ($limit || $s->{'rwusers'}) {
-			my $rwusers = join(" ", @{$s->{'rwusers'}});
+			my $rwusers = join(" ", "user", @{$s->{'rwusers'}});
 			if (!$limit) {
 				# Add new block for some users
 				&apache::save_directive_struct(
