@@ -48,8 +48,13 @@ else {
 			}
 		}
 
-	$in{'realm'} =~ /\S/ || &error($text{'share_erealm'});
-	$s->{'realm'} = $in{'realm'};
+	if (defined($in{'realm'})) {
+		$in{'realm'} =~ /\S/ || &error($text{'share_erealm'});
+		$s->{'realm'} = $in{'realm'};
+		}
+	else {
+		$s->{'realm'} ||= $d->{'dom'};
+		}
 
 	# Create the dir if needed
 	if (!-d $s->{'path'}) {

@@ -7,6 +7,7 @@ $in{'dom'} || &error($text{'index_edom'});
 $d = &virtual_server::get_domain($in{'dom'});
 $d || &error($text{'index_edom2'});
 $d->{$module_name} || &error($text{'index_edav'});
+$digest = $d->{'dav_auth'} ne 'Digest' ? 0 : 1;
 
 $ddesc = &virtual_server::domain_in($d);
 &ui_print_header($ddesc, $text{'shares_title'}, "");
@@ -19,7 +20,7 @@ if (@shares) {
 	print &ui_links_row(\@links);
 	print &ui_columns_start([ $text{'shares_dir'},
 				  $text{'shares_relpath'},
-				  $text{'shares_realm'},
+				  $digest ? ( ) : ( $text{'shares_realm'} ),
 				  $text{'shares_users'},
 				  $text{'shares_rwusers'},
 				], 100);
@@ -28,7 +29,7 @@ if (@shares) {
 			"<a href='edit_share.cgi?dom=$in{'dom'}&".
 			  "dir=$s->{'dir'}'>$s->{'fulldir'}</a>",
 			$s->{'relpath'},
-			$s->{'realm'},
+			$digest ? ( ) : ( $s->{'realm'} ),
 			&make_nice_users($s->{'users'}),
 			&make_nice_users($s->{'rwusers'}),
 			]);

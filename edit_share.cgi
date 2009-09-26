@@ -44,9 +44,11 @@ else {
 				30, $text{'share_samepath'}));
 	}
 
-# Realm name
-print &ui_table_row($text{'share_realm'},
-	&ui_textbox("realm", $s->{'realm'}, 50));
+# Realm name (if not in digest mode)
+if ($d->{'dav_auth'} ne 'Digest') {
+	print &ui_table_row($text{'share_realm'},
+		&ui_textbox("realm", $s->{'realm'}, 50));
+	}
 
 # Allowed users
 @allusers = map { [ $_->{'user'}, $_->{'user'} ] } &list_users($d);
