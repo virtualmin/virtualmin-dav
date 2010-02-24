@@ -26,10 +26,12 @@ print &ui_table_start($text{'share_header'}, undef, 2);
 # DAV path
 if ($in{'new'}) {
 	print &ui_table_row($text{'share_dir'},
-			    "<tt>/dav/</tt>".&ui_textbox("dir", undef, 20));
+			    "<tt>http://$d->{'dom'}/dav/</tt>".
+			    &ui_textbox("dir", undef, 20));
 	}
 else {
-	print &ui_table_row($text{'share_dir'}, "<tt>$s->{'fulldir'}</tt>");
+	print &ui_table_row($text{'share_dir'},
+			    "<tt>http://$d->{'dom'}$s->{'fulldir'}</tt>");
 	print &ui_hidden("dir", $in{'dir'});
 	}
 
@@ -41,7 +43,8 @@ else {
 	print &ui_table_row($text{'share_path'},
 		&ui_opt_textbox("relpath",
 				$s->{'samepath'} ? undef : $s->{'relpath'},
-				30, $text{'share_samepath'}));
+				30, $text{'share_samepath'},
+				$text{'share_otherpath'}));
 	}
 
 # Realm name (if not in digest mode)

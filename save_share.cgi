@@ -63,7 +63,7 @@ else {
 		my $web_user = &virtual_server::get_apache_user($d);
 		if ($web_user) {
 			&set_ownership_permissions($web_user, $d->{'gid'},
-						   6775, $s->{'path'});
+						   06775, $s->{'path'});
 			}
 		}
 
