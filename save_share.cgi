@@ -76,16 +76,17 @@ else {
 		@users || &error($text{'share_eusers'});
 		$s->{'users'} = \@users;
 		}
+	$s->{'rwusers'} = $s->{'users'};
 
 	# Save read-write users
-	if ($in{'rwusers_def'}) {
-		delete($s->{'rwusers'});
-		}
-	else {
-		@rwusers = split(/\r?\n/, $in{'rwusers'});
-		@rwusers || &error($text{'share_erwusers'});
-		$s->{'rwusers'} = \@rwusers;
-		}
+	# if ($in{'rwusers_def'}) {
+	# 	delete($s->{'rwusers'});
+	# 	}
+	# else {
+	# 	@rwusers = split(/\r?\n/, $in{'rwusers'});
+	# 	@rwusers || &error($text{'share_erwusers'});
+	# 	$s->{'rwusers'} = \@rwusers;
+	# 	}
 
 	# Create the Apache config
 	if ($in{'new'}) {

@@ -141,6 +141,8 @@ foreach my $p (@ports) {
 	$ok++ if (&add_dav_directives($d, $p, $s->{'dir'}, $s->{'path'},
 				      $s->{'realm'}));
 	}
+undef(@apache::get_config_cache);
+&modify_dav_share($d, $s);	# Set users
 &virtual_server::register_post_action(\&virtual_server::restart_apache);
 return $ok;
 }
@@ -305,6 +307,7 @@ if (!$loc) {
 		}
 	$loc = { 'name' => 'Location',
 		 'value' => $davpath,
+	 	 'words' => [ $davpath ],
 		 'type' => 1,
 		 'members' => \@mems };
 	&apache::save_directive_struct(undef, $loc, $vconf, $conf);

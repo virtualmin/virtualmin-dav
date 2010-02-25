@@ -65,14 +65,15 @@ print &ui_table_row($text{'share_users'},
 			 $text{'share_allusers'}, $text{'share_selusers'}));
 
 # Read-write users
-@selrwusers = $s->{'rwusers'} ? ( map { [ $_, $_ ] } @{$s->{'rwusers'}} )
-			      : ( );
-print &ui_table_row($text{'share_rwusers'},
-	&ui_radio("rwusers_def", $s->{'rwusers'} ? 0 : 1,
-		  [ [ 1, $text{'share_users1'} ],
-		    [ 0, $text{'share_users0'} ] ])."<br>\n".
-	&ui_multi_select("rwusers", \@selrwusers, \@allusers, 10, 1, 0,
-			 $text{'share_allusers'}, $text{'share_selusers'}));
+# Disabled for now - all users are read/write
+#@selrwusers = $s->{'rwusers'} ? ( map { [ $_, $_ ] } @{$s->{'rwusers'}} )
+#			      : ( );
+#print &ui_table_row($text{'share_rwusers'},
+#	&ui_radio("rwusers_def", $s->{'rwusers'} ? 0 : 1,
+#		  [ [ 1, $text{'share_users1'} ],
+#		    [ 0, $text{'share_users0'} ] ])."<br>\n".
+#	&ui_multi_select("rwusers", \@selrwusers, \@allusers, 10, 1, 0,
+#			 $text{'share_allusers'}, $text{'share_selusers'}));
 
 print &ui_table_end();
 if ($in{'new'}) {
