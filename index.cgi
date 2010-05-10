@@ -3,9 +3,19 @@
 
 require './virtualmin-dav-lib.pl';
 &ReadParse();
-$in{'dom'} || &error($text{'index_edom'});
-$d = &virtual_server::get_domain($in{'dom'});
-$d || &error($text{'index_edom2'});
+
+if (!$in{'dom'}) {
+	# Default to first domain with DAV
+	@doms = grep { $_->{$module_name} }
+		     &virtual_server::list_visible_domains();
+	@doms || &error($text{'index_edom'});
+	($d) = $doms[0];
+	}
+else {
+	# Get specific domain
+	$d = &virtual_server::get_domain($in{'dom'});
+	$d || &error($text{'index_edom2'});
+	}
 $ddesc = &virtual_server::domain_in($d);
 
 &ui_print_header($ddesc, $text{'index_title'}, "", undef, 1, 1);
@@ -13,7 +23,7 @@ $ddesc = &virtual_server::domain_in($d);
 $d->{$module_name} || &error($text{'index_edav'});
 
 print &ui_form_start("save.cgi");
-print &ui_hidden("dom", $in{'dom'});
+print &ui_hidden("dom", $d->{'dom'});
 print &ui_table_start($text{'index_header'}, undef, 2);
 
 # Current authentication mode
