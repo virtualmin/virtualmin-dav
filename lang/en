@@ -92,3 +92,4 @@ log_create_share=Created DAV share $1 in $2
 log_delete_share=Deleted DAV share $1 in $2
 log_modify_share=Modified DAV share $1 in $2
 log_auth=Changed authentication options in $1
+__norefs=1
