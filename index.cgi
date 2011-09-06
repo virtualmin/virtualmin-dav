@@ -46,7 +46,8 @@ print &ui_table_row($text{'index_mode'},
 @domusers = &virtual_server::list_domain_users($d);
 foreach $u (@domusers) {
 	($davu) = grep { $_->{'user'} eq &dav_username($u, $d) } @domusers;
-	if ($davu && !defined($u->{'plainpass'}) && !$u->{'domainowner'}) {
+	if ($davu && !defined($u->{'plainpass'}) && !$u->{'pass_digest'} &&
+	    !$u->{'domainowner'}) {
 		push(@cannot, $u->{'user'});
 		}
 	}

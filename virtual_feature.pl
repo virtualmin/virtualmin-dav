@@ -364,7 +364,9 @@ if ($in->{$input_name}) {
 		}
 
 	# Make sure a password is given if needed
-	if (!defined($user->{'plainpass'}) && !$duser &&
+	if (!defined($user->{'plainpass'}) &&
+	    !$user->{'pass_digest'} &&
+	    !$duser &&
 	    $user->{'user'} ne $dom->{'user'} &&
 	    $dom->{'dav_auth'} eq 'Digest') {
 		return $text{'mail_pass'};
@@ -394,18 +396,21 @@ if ($in->{$input_name} && !$suser) {
         # Add the user
         local $newuser = { 'user' => $un,
                            'enabled' => 1,
-                           'pass' => $user->{'pass'} };
+                           'pass' => $user->{'pass_crypt'} ||
+				       $user->{'pass'} };
         if ($dom->{'dav_auth'} eq 'Digest') {
                 # Set digest password
                 $newuser->{'digest'} = 1;
                 $newuser->{'dom'} = $dom->{'dom'};
                 if ($user->{'user'} eq $dom->{'user'}) {
-                        $newuser->{'pass'} = &htaccess_htpasswd::digest_password(
+                        $newuser->{'pass'} = $dom->{'enc_pass_digest'} ||
+			    &htaccess_htpasswd::digest_password(
                                 $un, $dom->{'dom'}, $dom->{'pass'});
                         }
                 elsif ($user->{'passmode'} == 3 ||
 		       defined($user->{'plainpass'})) {
-                        $newuser->{'pass'} = &htaccess_htpasswd::digest_password(
+                        $newuser->{'pass'} = $user->{'pass_digest'} ||
+			    &htaccess_htpasswd::digest_password(
                                 $un, $dom->{'dom'}, $user->{'plainpass'});
                         }
                 else {
@@ -428,11 +433,13 @@ elsif ($in->{$input_name} && $suser) {
         $suser->{'user'} = $un;
         if ($user->{'passmode'} == 3) {
                 if ($dom->{'dav_auth'} eq 'Digest') {
-                        $suser->{'pass'} = &htaccess_htpasswd::digest_password(
+                        $suser->{'pass'} = $user->{'enc_pass_digest'} ||
+			    &htaccess_htpasswd::digest_password(
                                 $un, $dom->{'dom'}, $user->{'plainpass'});
                         }
                 else {
-                        $suser->{'pass'} = &htaccess_htpasswd::encrypt_password(
+                        $suser->{'pass'} = $user->{'pass_crypt'} ||
+			    &htaccess_htpasswd::encrypt_password(
 				$user->{'plainpass'});
                         }
                 }
@@ -464,11 +471,13 @@ if ($suser) {
 	if ($user->{'passmode'} == 3) {
 		# Password changed
 		if ($dom->{'dav_auth'} eq 'Digest') {
-                        $suser->{'pass'} = &htaccess_htpasswd::digest_password(
+                        $suser->{'pass'} = $user->{'pass_digest'} ||
+			    &htaccess_htpasswd::digest_password(
                                 $un, $dom->{'dom'}, $user->{'plainpass'});
 			}
 		else {
-                        $suser->{'pass'} = &htaccess_htpasswd::encrypt_password(
+                        $suser->{'pass'} = $user->{'pass_crypt'} ||
+			    &htaccess_htpasswd::encrypt_password(
 				$user->{'plainpass'});
 			}
 		}

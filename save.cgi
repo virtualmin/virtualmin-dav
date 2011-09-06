@@ -25,7 +25,8 @@ if ($in{'auth'} eq $d->{'dav_auth'} &&
 @allusers = &virtual_server::list_domain_users($d);
 foreach $davu (@davusers) {
 	($u) = grep { &dav_username($_, $d) eq $davu->{'user'} } @allusers;
-	if ($u && (defined($u->{'plainpass'}) || $u->{'domainowner'})) {
+	if ($u && (defined($u->{'plainpass'}) || $u->{'pass_digest'} ||
+		   $u->{'domainowner'})) {
 		push(@users, $u);
 		}
 	}
@@ -45,16 +46,35 @@ $file = &digest_file($d);
 foreach $u (@users) {
 	$davu = { 'user' => &dav_username($u, $d),
 		  'enabled' => 1 };
-	$ppass = $u->{'domainowner'} ? $d->{'pass'} : $u->{'plainpass'};
+	if ($u->{'domainowner'}) {
+		$ppass = $d->{'pass'};
+		$upass = $d->{'enc_pass_crypt'};
+		$dpass = $d->{'enc_pass_digest'};
+		}
+	else {
+		$ppass = $u->{'plainpass'};
+		$upass = $u->{'pass_crypt'};
+		$dpass = $u->{'pass_digest'};
+		}
 	if ($d->{'dav_auth'} eq 'Basic') {
 		# Unix crypted password
-		$salt = substr(time(), -2);
-		$davu->{'pass'} = &unix_crypt($ppass, $salt);
+		if ($ppass) {
+			$salt = substr(time(), -2);
+			$davu->{'pass'} = &unix_crypt($ppass, $salt);
+			}
+		else {
+			$davu->{'pass'} = $upass;
+			}
 		}
 	else {
 		# DAV password
-		$davu->{'pass'} = &htaccess_htpasswd::digest_password(
-			$davu->{'user'}, $d->{'dom'}, $ppass);
+		if ($ppass) {
+			$davu->{'pass'} = &htaccess_htpasswd::digest_password(
+				$davu->{'user'}, $d->{'dom'}, $ppass);
+			}
+		else {
+			$davu->{'pass'} = $dpass;
+			}
 		$davu->{'dom'} = $d->{'dom'};
 		$davu->{'digest'} = 1;
 		}
