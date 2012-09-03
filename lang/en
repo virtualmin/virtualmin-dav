@@ -18,6 +18,7 @@ index_return=DAV authentication form
 
 feat_name=DAV Login
 feat_label=Enable DAV logins?
+feat_label2=DAV login
 feat_disname=DAV login
 feat_losing=DAV access will be disabled
 feat_edepweb=DAV cannot be enabled unless a website is
