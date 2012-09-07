@@ -23,7 +23,7 @@ $ddesc = &virtual_server::domain_in($d);
 $d->{$module_name} || &error($text{'index_edav'});
 
 print &ui_form_start("save.cgi");
-print &ui_hidden("dom", $d->{'dom'});
+print &ui_hidden("dom", $d->{'id'});
 print &ui_table_start($text{'index_header'}, undef, 2);
 
 # Current authentication mode
