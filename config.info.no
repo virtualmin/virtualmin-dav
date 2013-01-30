@@ -1,0 +1,2 @@
+name_mode=DAV brukernavnmodus,1,0-bruker@domene,1-Virtualmin POP3/FTP brukernavn,2-Domene\brukernavn (for Windows)
+auth=Autentiseringstype,1,Basic-Grunnleggende,Digest-Digest
