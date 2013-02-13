@@ -573,6 +573,11 @@ else {
 	}
 }
 
+sub feature_modules
+{
+return ( [ $module_name, $text{'feat_module'} ] );
+}
+
 # feature_links(&dom)
 # Returns a link to the DAV module for this domain
 sub feature_links

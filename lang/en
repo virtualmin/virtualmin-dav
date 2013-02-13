@@ -32,6 +32,7 @@ feat_backup_name=DAV users file
 feat_evalidatefile=DAV users file $1 does not exist
 feat_evalidatealias=Missing DAV alias from Apache configuration
 feat_evalidateloc=Missing DAV Location from Apache configuration
+feat_module=Virtualmin DAV (for managing shares)
 
 setup_dav=Adding DAV directives to website configuration ..
 setup_already=.. already defined.
