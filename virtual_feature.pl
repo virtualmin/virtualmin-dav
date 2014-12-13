@@ -263,7 +263,7 @@ local ($d, $file, $opts) = @_;
 &$virtual_server::first_print($text{'feat_backup'});
 local $cfile = &digest_file($_[0]);
 if (-r $cfile) {
-	&copy_source_dest($cfile, $file);
+	&virtual_server::copy_write_as_domain_user($d, $cfile, $file);
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
 	return 1;
 	}
