@@ -58,10 +58,11 @@ else {
 
 	# Create the dir if needed
 	if (!-d $s->{'path'}) {
+		-r $s->{'path'} && &error($text{'share_epathfile'});
 		&virtual_server::make_dir_as_domain_user($d, $s->{'path'},
 							 0755, 1);
 		my $web_user = &virtual_server::get_apache_user($d);
-		if ($web_user) {
+		if ($web_user && !-l $s->{'path'}) {
 			&set_ownership_permissions($web_user, $d->{'gid'},
 						   06775, $s->{'path'});
 			}
