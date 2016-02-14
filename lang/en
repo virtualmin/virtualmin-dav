@@ -80,6 +80,7 @@ share_err=Failed to save DAV share
 share_eclash=A share for the same URL path already exists
 share_edir=Missing or invalid URL path - no slash is needed at the start
 share_epath=Missing or invalid directory under home - no slash is needed at the start
+share_epathfile=Directory cannot be an existing file
 share_erealm=Missing share description
 share_users=Users with access
 share_users1=All users
