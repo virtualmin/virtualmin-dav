@@ -1,13 +1,16 @@
 #!/usr/local/bin/perl
 # Update the DAV authentication mode and users
+use strict;
+use warnings;
+our (%in, %text, %config);
 
 require './virtualmin-dav-lib.pl';
 require './virtual_feature.pl';
 &ReadParse();
 $in{'dom'} || &error($text{'index_edom'});
-$d = &virtual_server::get_domain($in{'dom'});
+my $d = &virtual_server::get_domain($in{'dom'});
 $d || &error($text{'index_edom2'});
-$ddesc = &virtual_server::domain_in($d);
+my $ddesc = &virtual_server::domain_in($d);
 
 # Make sure something was done
 &error_setup($text{'save_err'});
@@ -21,10 +24,11 @@ if ($in{'auth'} eq $d->{'dav_auth'} &&
 &ui_print_header($ddesc, $text{'save_title'}, "");
 
 # Get current users
-@davusers = &list_users($d);
-@allusers = &virtual_server::list_domain_users($d);
-foreach $davu (@davusers) {
-	($u) = grep { &dav_username($_, $d) eq $davu->{'user'} } @allusers;
+my @davusers = &list_users($d);
+my @allusers = &virtual_server::list_domain_users($d);
+my @users;
+foreach my $davu (@davusers) {
+	my ($u) = grep { &dav_username($_, $d) eq $davu->{'user'} } @allusers;
 	if ($u && (defined($u->{'plainpass'}) || $u->{'pass_digest'} ||
 		   $u->{'domainowner'})) {
 		push(@users, $u);
@@ -40,12 +44,15 @@ $d->{'dav_name_mode'} = $in{'mode'};
 
 # Re-create all users
 &$virtual_server::first_print($text{'save_recreate'});
-$file = &digest_file($d);
+my $file = &digest_file($d);
+no strict "subs";
 &virtual_server::open_tempfile_as_domain_user($d, TRUNC, ">$file", 1, 1);
 &virtual_server::close_tempfile_as_domain_user($d, TRUNC);
-foreach $u (@users) {
-	$davu = { 'user' => &dav_username($u, $d),
-		  'enabled' => 1 };
+use strict "subs";
+foreach my $u (@users) {
+	my $davu = { 'user' => &dav_username($u, $d),
+		     'enabled' => 1 };
+	my ($ppass, $upass, $dpass);
 	if ($u->{'domainowner'}) {
 		$ppass = $d->{'pass'};
 		$upass = $d->{'enc_pass_crypt'};
@@ -59,7 +66,7 @@ foreach $u (@users) {
 	if ($d->{'dav_auth'} eq 'Basic') {
 		# Unix crypted password
 		if ($ppass) {
-			$salt = substr(time(), -2);
+			my $salt = substr(time(), -2);
 			$davu->{'pass'} = &unix_crypt($ppass, $salt);
 			}
 		else {

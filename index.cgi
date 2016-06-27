@@ -1,9 +1,15 @@
 #!/usr/local/bin/perl
 # Show DAV settings for some domain
+use strict;
+use warnings;
+our (%text, %in, %config);
+our $module_name;
 
 require './virtualmin-dav-lib.pl';
 &ReadParse();
 
+my $d;
+my @doms;
 if (!$in{'dom'}) {
 	# Default to first domain with DAV
 	@doms = grep { $_->{$module_name} }
@@ -16,7 +22,7 @@ else {
 	$d = &virtual_server::get_domain($in{'dom'});
 	$d || &error($text{'index_edom2'});
 	}
-$ddesc = &virtual_server::domain_in($d);
+my $ddesc = &virtual_server::domain_in($d);
 
 &ui_print_header($ddesc, $text{'index_title'}, "", undef, 1, 1);
 
@@ -42,10 +48,11 @@ print &ui_table_row($text{'index_mode'},
 			  [ 2, $text{'index_mode2'} ] ]));
 
 # Number of DAV users
-@davusers = &list_users($d);
-@domusers = &virtual_server::list_domain_users($d);
-foreach $u (@domusers) {
-	($davu) = grep { $_->{'user'} eq &dav_username($u, $d) } @domusers;
+my @davusers = &list_users($d);
+my @domusers = &virtual_server::list_domain_users($d);
+my @cannot;
+foreach my $u (@domusers) {
+	my ($davu) = grep { $_->{'user'} eq &dav_username($u, $d) } @domusers;
 	if ($davu && !defined($u->{'plainpass'}) && !$u->{'pass_digest'} &&
 	    !$u->{'domainowner'}) {
 		push(@cannot, $u->{'user'});

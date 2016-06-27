@@ -1,21 +1,22 @@
 #!/usr/local/bin/perl
 # Create, update or delete a DAV share
+use strict;
+use warnings;
+our (%text, %in); 
 
 require './virtualmin-dav-lib.pl';
 &ReadParse();
 $in{'dom'} || &error($text{'index_edom'});
-$d = &virtual_server::get_domain($in{'dom'});
+my $d = &virtual_server::get_domain($in{'dom'});
 $d || &error($text{'index_edom2'});
-@shares = &list_dav_shares($d);
+my @shares = &list_dav_shares($d);
 &error_setup($text{'share_err'});
 &virtual_server::obtain_lock_web($d);
 
+my $s = { };
 if (!$in{'new'}) {
 	($s) = grep { $_->{'dir'} eq $in{'dir'} } @shares;
         $s || &error($text{'share_egone'});
-	}
-else {
-	$s = { };
 	}
 
 if ($in{'delete'}) {
@@ -26,7 +27,7 @@ else {
 	# Validate inputs
 	if ($in{'new'}) {
 		# Check for clash
-		($clash) = grep { $_->{'dir'} eq $in{'dir'} } @shares;
+		my ($clash) = grep { $_->{'dir'} eq $in{'dir'} } @shares;
 		$clash && &error($text{'share_eclash'});
 		$in{'dir'} =~ /^\S+$/ && $in{'dir'} !~ /^\// ||
 			&error($text{'share_edir'});
@@ -73,7 +74,7 @@ else {
 		delete($s->{'users'});
 		}
 	else {
-		@users = split(/\r?\n/, $in{'users'});
+		my @users = split(/\r?\n/, $in{'users'});
 		@users || &error($text{'share_eusers'});
 		$s->{'users'} = \@users;
 		}

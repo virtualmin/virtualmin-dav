@@ -1,13 +1,17 @@
 #!/usr/local/bin/perl
 # Show a form to create or edit a DAV share
+use strict;
+use warnings;
+our (%text, %in); 
 
 require './virtualmin-dav-lib.pl';
 &ReadParse();
 $in{'dom'} || &error($text{'index_edom'});
-$d = &virtual_server::get_domain($in{'dom'});
+my $d = &virtual_server::get_domain($in{'dom'});
 $d || &error($text{'index_edom2'});
-$ddesc = &virtual_server::domain_in($d);
+my $ddesc = &virtual_server::domain_in($d);
 
+my $s;
 if ($in{'new'}) {
 	&ui_print_header($ddesc, $text{'share_title1'}, "");
 	$s = { 'samepath' => 1 };
@@ -54,8 +58,8 @@ if ($d->{'dav_auth'} ne 'Digest') {
 	}
 
 # Allowed users
-@allusers = map { [ $_->{'user'}, $_->{'user'} ] } &list_users($d);
-@selusers = $s->{'users'} ? ( map { [ $_, $_ ] } @{$s->{'users'}} )
+my @allusers = map { [ $_->{'user'}, $_->{'user'} ] } &list_users($d);
+my @selusers = $s->{'users'} ? ( map { [ $_, $_ ] } @{$s->{'users'}} )
 			  : ( );
 print &ui_table_row($text{'share_users'},
 	&ui_radio("users_def", $s->{'users'} ? 0 : 1,

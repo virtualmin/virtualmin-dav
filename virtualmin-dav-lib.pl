@@ -1,4 +1,7 @@
 # Common functions for DAV management
+use strict;
+use warnings;
+our (%config);
 
 BEGIN { push(@INC, ".."); };
 eval "use WebminCore;";
@@ -15,7 +18,7 @@ return "$_[0]->{'home'}/etc/dav.digest.passwd";
 # list_users(&domain)
 sub list_users
 {
-local $users;
+my $users;
 &foreign_require("htaccess-htpasswd", "htaccess-lib.pl");
 $_[0]->{'dav_auth'} ||= $config{'auth'};
 if ($_[0]->{'dav_auth'} eq 'Digest') {
@@ -30,29 +33,30 @@ return @$users;
 # save_users(&domain, &users)
 sub save_users
 {
-local $u;
+no strict "subs"; # XXX Lexical?
 &virtual_server::open_tempfile_as_domain_user(
 	$_[0], FILE, ">".&digest_file($_[0]));
-foreach $u (@{$_[1]}) {
+foreach my $u (@{$_[1]}) {
 	&print_tempfile(FILE, $u->{'user'},":",$u->{'dom'},":",$u->{'pass'},"\n");
 	}
 &virtual_server::close_tempfile_as_domain_user($_[0], FILE);
+use strict "subs";
 }
 
 # dav_username(&user, &domain)
 # Returns the DAV username for a user in some domain
 sub dav_username
 {
-local ($user, $dom) = @_;
+my ($user, $dom) = @_;
 $dom->{'dav_name_mode'} = $config{'name_mode'} if (!defined($dom->{'dav_name_mode'}));
 if ($dom->{'dav_name_mode'} == 0) {
 	# user@domain mode
-	local $un = &virtual_server::remove_userdom($user->{'user'}, $dom);
+	my $un = &virtual_server::remove_userdom($user->{'user'}, $dom);
 	return "$un\@$dom->{'dom'}";
 	}
 elsif ($dom->{'dav_name_mode'} == 2) {
 	# domain\user mode
-	local $un = &virtual_server::remove_userdom($user->{'user'}, $dom);
+	my $un = &virtual_server::remove_userdom($user->{'user'}, $dom);
 	return "$dom->{'dom'}\\$un";
 	}
 else {
@@ -141,7 +145,9 @@ foreach my $p (@ports) {
 	$ok++ if (&add_dav_directives($d, $p, $s->{'dir'}, $s->{'path'},
 				      $s->{'realm'}));
 	}
+no warnings "once";
 undef(@apache::get_config_cache);
+use warnings "once";
 &modify_dav_share($d, $s);	# Set users
 &virtual_server::register_post_action(\&virtual_server::restart_apache);
 return $ok;
@@ -180,8 +186,8 @@ foreach my $port (@ports) {
 	next if (!$virt);
 
 	# Find Alias and change path
-	local $phtml = &virtual_server::public_html_dir($d);
-	local @aliases = &apache::find_directive("Alias", $vconf);
+	my $phtml = &virtual_server::public_html_dir($d);
+	my @aliases = &apache::find_directive("Alias", $vconf);
 	my $idx = -1;
 	my $davpath = "/dav".($s->{'dir'} ? "/".$s->{'dir'} : "");
 	for(my $i=0; $i<@aliases; $i++) {
@@ -193,8 +199,8 @@ foreach my $port (@ports) {
 	&apache::save_directive("Alias", \@aliases, $vconf, $conf);
 
 	# Find Location and change realm
-	local @locs = &apache::find_directive_struct("Location", $vconf);
-	local ($loc) = grep { $_->{'words'}->[0] eq $davpath } @locs;
+	my @locs = &apache::find_directive_struct("Location", $vconf);
+	my ($loc) = grep { $_->{'words'}->[0] eq $davpath } @locs;
 	if ($loc) {
 		&apache::save_directive("AuthName", [ "\"$s->{'realm'}\"" ],
 					$loc->{'members'}, $conf);
@@ -253,32 +259,32 @@ return 1;
 # Finds a matching Apache virtualhost section, and adds the DAV directives
 sub add_dav_directives
 {
-local ($d, $port, $dir, $dirpath, $realm) = @_;
-local ($virt, $vconf, $conf) =
+my ($d, $port, $dir, $dirpath, $realm) = @_;
+my ($virt, $vconf, $conf) =
 	&virtual_server::get_apache_virtual($d->{'dom'}, $port);
 return 0 if (!$virt);
 
 # Add Alias if missing
-local $phtml = &virtual_server::public_html_dir($d);
-local @aliases = &apache::find_directive("Alias", $vconf);
-local $davpath = "/dav".($dir ? "/".$dir : "");
+my $phtml = &virtual_server::public_html_dir($d);
+my @aliases = &apache::find_directive("Alias", $vconf);
+my $davpath = "/dav".($dir ? "/".$dir : "");
 $dirpath ||= $phtml;
-local $avalue = $davpath." ".$dirpath;
+my $avalue = $davpath." ".$dirpath;
 if (&indexof($avalue, @aliases) < 0) {
 	push(@aliases, $avalue);
 	&apache::save_directive("Alias", \@aliases, $vconf, $conf);
 	}
 
 # Add Location if missing
-local $passwd_file = &digest_file($d);
-local @locs = &apache::find_directive_struct("Location", $vconf);
-local ($loc) = grep { $_->{'words'}->[0] eq $davpath } @locs;
+my $passwd_file = &digest_file($d);
+my @locs = &apache::find_directive_struct("Location", $vconf);
+my ($loc) = grep { $_->{'words'}->[0] eq $davpath } @locs;
 if (!$loc) {
-	local $at = $d->{'dav_auth'};
-	local $auf = $at eq "Digest" &&
+	my $at = $d->{'dav_auth'};
+	my $auf = $at eq "Digest" &&
 		     $apache::httpd_modules{'core'} < 2.2 ?
 			"AuthDigestFile" : "AuthUserFile";
-	local @mems = (
+	my @mems = (
 		{ 'name' => 'DAV', 'value' => 'on' },
 		{ 'name' => 'AuthType', 'value' => $at },
 		{ 'name' => 'AuthName',
@@ -319,14 +325,14 @@ return 1;
 # remove_dav_directives(&domain, port, [subdir, path])
 sub remove_dav_directives
 {
-local ($d, $port, $dir, $dirpath) = @_;
-local ($virt, $vconf, $conf) =
+my ($d, $port, $dir, $dirpath) = @_;
+my ($virt, $vconf, $conf) =
 	&virtual_server::get_apache_virtual($d->{'dom'}, $port);
 return 0 if (!$virt);
 
 # Remove the alias
-local $phtml = &virtual_server::public_html_dir($d);
-local @aliases = &apache::find_directive("Alias", $vconf);
+my $phtml = &virtual_server::public_html_dir($d);
+my @aliases = &apache::find_directive("Alias", $vconf);
 my $idx = -1;
 my $davpath = "/dav".($dir ? "/".$dir : "");
 for(my $i=0; $i<@aliases; $i++) {
@@ -341,8 +347,8 @@ if ($idx >= 0) {
 	}
 
 # Remove the Location
-local @locs = &apache::find_directive_struct("Location", $vconf);
-local ($loc) = grep { $_->{'words'}->[0] eq $davpath } @locs;
+my @locs = &apache::find_directive_struct("Location", $vconf);
+my ($loc) = grep { $_->{'words'}->[0] eq $davpath } @locs;
 if ($loc) {
 	&apache::save_directive_struct($loc, undef, $vconf, $conf);
 	}

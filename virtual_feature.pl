@@ -1,9 +1,14 @@
 # Defines functions for this feature
+use strict;
+use warnings;
+our (%text, %config);
+our $module_name;
+our $module_config_directory;
 
 require 'virtualmin-dav-lib.pl';
 &load_theme_library();
 
-$input_name = $module_name;
+my $input_name = $module_name;
 $input_name =~ s/[^A-Za-z0-9]/_/g;
 
 # feature_name()
@@ -32,7 +37,7 @@ return $text{'feat_disname'};
 # editing form
 sub feature_label
 {
-local ($edit) = @_;
+my ($edit) = @_;
 return $edit ? $text{'feat_label2'} : $text{'feat_label'};
 }
 
@@ -47,6 +52,7 @@ return "label";
 sub feature_check
 {
 &virtual_server::require_apache();
+no warnings "once";
 return $text{'feat_eapache'} if (!$apache::httpd_modules{'mod_dav'});
 if ($config{'auth'} eq 'Digest') {
 	# Check for htdigest command
@@ -55,6 +61,7 @@ if ($config{'auth'} eq 'Digest') {
 		return &text('feat_edigest', "<tt>htdigest</tt>");
 		}
 	}
+use warnings "once";
 return undef;
 }
 
@@ -86,32 +93,35 @@ return $_[1] || $_[2] ? 0 : 1;		# not for alias domains
 # Called when this feature is added, with the domain object as a parameter
 sub feature_setup
 {
+my ($d) = shift;
 &$virtual_server::first_print($text{'setup_dav'});
-&virtual_server::obtain_lock_web($_[0]);
-local $any;
-$_[0]->{'dav_auth'} ||= $config{'auth'};
-$_[0]->{'dav_name_mode'} = $config{'name_mode'} if (!defined($_[0]->{'dav_name_mode'}));
-$any++ if (&add_dav_directives($_[0], $_[0]->{'web_port'}));
-$any++ if ($_[0]->{'ssl'} &&
-	   &add_dav_directives($_[0], $_[0]->{'web_sslport'}));
+&virtual_server::obtain_lock_web($d);
+$d->{'dav_auth'} ||= $config{'auth'};
+$d->{'dav_name_mode'} = $config{'name_mode'} if (!defined($d->{'dav_name_mode'}));
+my $any;
+$any++ if (&add_dav_directives($d, $d->{'web_port'}));
+$any++ if ($d->{'ssl'} &&
+	   &add_dav_directives($d, $d->{'web_sslport'}));
 if (!$any) {
 	&$virtual_server::second_print(
 		$virtual_server::text{'delete_noapache'});
 	}
 else {
 	# Added Apache config .. now create other files
-	local $passwd_file = &digest_file($_[0]);
-	if (!-d "$_[0]->{'home'}/etc") {
+	my $passwd_file = &digest_file($d);
+	if (!-d "$d->{'home'}/etc") {
 		&virtual_server::make_dir_as_domain_user(
-			$_[0], "$_[0]->{'home'}/etc", 0755);
+			$d, "$d->{'home'}/etc", 0755);
 		}
 	if (!-r $passwd_file) {
+	        no strict "subs"; # XXX Lexical?
 		&virtual_server::open_tempfile_as_domain_user(
-			$_[0], PASSWD, ">$passwd_file", 0, 1);
-		&virtual_server::close_tempfile_as_domain_user($_[0], PASSWD);
+			$d, PASSWD, ">$passwd_file", 0, 1);
+		&virtual_server::close_tempfile_as_domain_user($d, PASSWD);
+		use strict "subs";
 		}
 	&virtual_server::set_permissions_as_domain_user(
-		$_[0], 0665, $passwd_file);
+		$d, 0665, $passwd_file);
 
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
 	&virtual_server::register_post_action(\&virtual_server::restart_apache);
@@ -119,21 +129,21 @@ else {
 	# Grant access to the domain's owner
 	my $uinfo;
 	if (!$d->{'parent'} &&
-	    ($uinfo = &virtual_server::get_domain_owner($_[0]))) {
+	    ($uinfo = &virtual_server::get_domain_owner($d))) {
 		&$virtual_server::first_print($text{'setup_davuser'});
-		local $un = &dav_username($uinfo, $_[0]);
-		local $newuser = { 'user' => $un,
+		my $un = &dav_username($uinfo, $d);
+		my $newuser = { 'user' => $un,
 				   'enabled' => 1 };
-		if ($_[0]->{'dav_auth'} eq 'Digest') {
+		if ($d->{'dav_auth'} eq 'Digest') {
 			# Do Digest encryption
 			$newuser->{'pass'} = &htaccess_htpasswd::digest_password
-				($un, $_[0]->{'dom'}, $_[0]->{'pass'});
+				($un, $d->{'dom'}, $d->{'pass'});
 			}
 		else {
 			# Copy Unix crypted pass
 			$newuser->{'pass'} = $uinfo->{'pass'};
 			}
-		&virtual_server::write_as_domain_user($_[0],
+		&virtual_server::write_as_domain_user($d,
 			sub { &htaccess_htpasswd::create_user(
 				$newuser, $passwd_file) });
 		&$virtual_server::second_print(
@@ -144,10 +154,10 @@ else {
 # Make sure /dav isn't proxied
 if (defined(&virtual_server::setup_noproxy_path)) {
 	&virtual_server::setup_noproxy_path(
-		$_[0], { }, undef, { 'path' => '/dav/' }, 1);
+		$d, { }, undef, { 'path' => '/dav/' }, 1);
 	}
 
-&virtual_server::release_lock_web($_[0]);
+&virtual_server::release_lock_web($d);
 }
 
 # feature_modify(&domain, &olddomain)
@@ -158,8 +168,8 @@ if ($_[0]->{'dom'} ne $_[1]->{'dom'}) {
 	# Change domain on DAV users
 	&virtual_server::obtain_lock_web($_[0]);
 	&$virtual_server::first_print($text{'save_dav'});
-	local @users = &list_users($_[0]);
-	foreach $e (@users) {
+	my @users = &list_users($_[0]);
+	foreach my $u (@users) {
 		$u->{'dom'} = $_[0]->{'dom'};
 		$u->{'user'} =~ s/$_[1]->{'dom'}/$_[0]->{'dom'}/;
 		}
@@ -174,9 +184,9 @@ if ($_[0]->{'dom'} ne $_[1]->{'dom'}) {
 	}
 if ($_[0]->{'pass'} ne $_[1]->{'pass'}) {
 	# Change password for domain admin, if he has a DAV account
-	local @users = &list_users($_[0]);
-	local $uinfo = &virtual_server::get_domain_owner($_[0]);
-	local ($un, $suser);
+	my @users = &list_users($_[0]);
+	my $uinfo = &virtual_server::get_domain_owner($_[0]);
+	my ($un, $suser);
 	if ($uinfo) {
 		$un = &dav_username($uinfo, $_[0]);
 		($suser) = grep { $_->{'user'} eq $un } @users;
@@ -201,14 +211,14 @@ if ($_[0]->{'pass'} ne $_[1]->{'pass'}) {
 
 sub change_dav_directives
 {
-local ($d, $port) = @_;
-local $conf = &apache::get_config();
-local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'}, $port);
+my ($d, $port) = @_;
+my $conf = &apache::get_config();
+my ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'}, $port);
 return 0 if (!$virt);
-local @locs = &apache::find_directive_struct("Location", $vconf);
-local ($davloc) = grep { $_->{'words'}->[0] eq "/dav" } @locs;
+my @locs = &apache::find_directive_struct("Location", $vconf);
+my ($davloc) = grep { $_->{'words'}->[0] eq "/dav" } @locs;
 if ($davloc) {
-	local $auth = &apache::find_directive_struct(
+	my $auth = &apache::find_directive_struct(
 		"AuthName", $davloc->{'members'});
 	if ($auth) {
 		&apache::save_directive("AuthName", [ $d->{'dom'} ],
@@ -226,7 +236,7 @@ sub feature_delete
 {
 &$virtual_server::first_print($text{'delete_dav'});
 &virtual_server::obtain_lock_web($_[0]);
-local $any;
+my $any;
 $any++ if (&remove_dav_directives($_[0], $_[0]->{'web_port'}));
 $any++ if ($_[0]->{'ssl'} &&
 	   &remove_dav_directives($_[0], $_[0]->{'web_sslport'}));
@@ -247,21 +257,13 @@ else {
 	}
 }
 
-# feature_webmin(&domain)
-# Returns a list of webmin module names and ACL hash references to be set for
-# the Webmin user when this feature is enabled
-sub feature_webmin
-{
-return ( );
-}
-
 # feature_backup(&domain, file, &opts, &all-opts)
 # Copy the DAV password file file for the domain
 sub feature_backup
 {
-local ($d, $file, $opts) = @_;
+my ($d, $file, $opts) = @_;
 &$virtual_server::first_print($text{'feat_backup'});
-local $cfile = &digest_file($_[0]);
+my $cfile = &digest_file($_[0]);
 if (-r $cfile) {
 	&virtual_server::copy_write_as_domain_user($d, $cfile, $file);
 	&$virtual_server::second_print($virtual_server::text{'setup_done'});
@@ -277,12 +279,12 @@ else {
 # Called to restore this feature for the domain from the given file
 sub feature_restore
 {
-local ($d, $file, $opts) = @_;
+my ($d, $file, $opts) = @_;
 &$virtual_server::first_print($text{'feat_restore'});
 &set_ownership_permissions(undef, undef, 0755, $file);
-local $cfile = &digest_file($_[0]);
+my $cfile = &digest_file($_[0]);
 &lock_file($cfile);
-local ($ok, $err) = &virtual_server::copy_source_dest_as_domain_user(
+my ($ok, $err) = &virtual_server::copy_source_dest_as_domain_user(
 			$d, $file, $cfile);
 if ($ok) {
 	&unlock_file($cfile);
@@ -307,14 +309,14 @@ return $text{'feat_backup_name'};
 # an error message if any problem is found
 sub feature_validate
 {
-local ($d) = @_;
-local $passwd_file = &digest_file($d);
+my ($d) = @_;
+my $passwd_file = &digest_file($d);
 -r $passwd_file || return &text('feat_evalidatefile', "<tt>$passwd_file</tt>");
-local ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'}, $port);
+my ($virt, $vconf) = &virtual_server::get_apache_virtual($d->{'dom'});
 $virt || return &virtual_server::text('validate_eweb', $d->{'dom'});
-local @aliases = &apache::find_directive("Alias", $vconf, 1);
+my @aliases = &apache::find_directive("Alias", $vconf, 1);
 &indexof("/dav", @aliases) >= 0 || return &text('feat_evalidatealias');
-local @locs = &apache::find_directive("Location", $vconf, 1);
+my @locs = &apache::find_directive("Location", $vconf, 1);
 &indexof("/dav", @locs) >= 0 || return &text('feat_evalidateloc');
 return undef;
 }
@@ -324,19 +326,22 @@ return undef;
 # formatted to appear inside a table.
 sub mailbox_inputs
 {
-local ($user, $new, $dom) = @_;
+my ($user, $new, $dom) = @_;
 return undef if ($dom && !$dom->{$module_name});
-local $un = &dav_username($user, $dom);
-local $duser;
+my $un = &dav_username($user, $dom);
+my $duser;
 if (!$new) {
-	local @users = &list_users($dom);
+	my @users = &list_users($dom);
 	($duser) = grep { $_->{'user'} eq $un } @users;
 	}
 else {
+        my %davdefs;
 	&read_file("$module_config_directory/defaults.$dom->{'id'}", \%davdefs);
 	$duser = { } if ($davdefs{'dav'} || $user->{'webowner'});
 	}
-local $main::ui_table_cols = 2;
+no warnings "once";
+$main::ui_table_cols = 2;
+use warnings "once";
 return &ui_table_row(&hlink($text{'mail_dav'}, "dav"),
 		     &ui_radio($input_name,
 			       $duser || $user->{$module_name} ? 1 : 0,
@@ -349,18 +354,18 @@ return &ui_table_row(&hlink($text{'mail_dav'}, "dav"),
 # success or an error message
 sub mailbox_validate
 {
-local ($user, $olduser, $in, $new, $dom) = @_;
+my ($user, $olduser, $in, $new, $dom) = @_;
 return undef if ($dom && !$dom->{$module_name});
 $dom->{'dav_auth'} ||= $config{'auth'};
 if ($in->{$input_name}) {
-	local @users = &list_users($dom);
-	local $un = &dav_username($user, $dom);
-	local $oun = &dav_username($olduser, $dom);
-	local ($duser) = grep { $_->{'user'} eq $oun } @users;
+	my @users = &list_users($dom);
+	my $un = &dav_username($user, $dom);
+	my $oun = &dav_username($olduser, $dom);
+	my ($duser) = grep { $_->{'user'} eq $oun } @users;
 
 	# Make sure DAV user doesn't clash
 	if ($new || $user->{'user'} ne $olduser->{'user'}) {
-		local ($clash) = grep { $_->{'user'} eq $un } @users;
+		my ($clash) = grep { $_->{'user'} eq $un } @users;
 		return &text('mail_clash', $un) if ($clash);
 		}
 
@@ -380,14 +385,14 @@ return undef;
 # Updates the user based on inputs generated by mailbox_inputs
 sub mailbox_save
 {
-local ($user, $olduser, $in, $new, $dom) = @_;
+my ($user, $olduser, $in, $new, $dom) = @_;
 return 0 if ($dom && !$dom->{$module_name});
 &foreign_require("htaccess-htpasswd", "htaccess-lib.pl");
-local @users = &list_users($dom);
-local $suser;
-local $un = &dav_username($user, $dom);
-local $oun = &dav_username($olduser, $dom);
-local $rv;
+my @users = &list_users($dom);
+my $suser;
+my $un = &dav_username($user, $dom);
+my $oun = &dav_username($olduser, $dom);
+my $rv;
 $dom->{'dav_auth'} ||= $config{'auth'};
 
 if (!$new) {
@@ -395,7 +400,7 @@ if (!$new) {
 	}
 if ($in->{$input_name} && !$suser) {
         # Add the user
-        local $newuser = { 'user' => $un,
+        my $newuser = { 'user' => $un,
                            'enabled' => 1,
                            'pass' => $user->{'pass_crypt'} ||
 				       $user->{'pass'} };
@@ -458,13 +463,13 @@ return $rv;
 # mailbox_modify(&user, &old, &domain)
 sub mailbox_modify
 {
-local ($user, $old, $dom) = @_;
+my ($user, $old, $dom) = @_;
 return undef if ($dom && !$dom->{$module_name});
 &foreign_require("htaccess-htpasswd", "htaccess-lib.pl");
-local @users = &list_users($dom);
-local $un = &dav_username($user, $dom);
-local $oun = &dav_username($user, $dom);
-local ($suser) = grep { $_->{'user'} eq $oun } @users;
+my @users = &list_users($dom);
+my $un = &dav_username($user, $dom);
+my $oun = &dav_username($user, $dom);
+my ($suser) = grep { $_->{'user'} eq $oun } @users;
 $dom->{'dav_auth'} ||= $config{'auth'};
 if ($suser) {
 	# Update the user
@@ -491,12 +496,12 @@ if ($suser) {
 # Removes any extra features for this user
 sub mailbox_delete
 {
-local ($user, $dom) = @_;
+my ($user, $dom) = @_;
 return undef if ($dom && !$dom->{$module_name});
 &foreign_require("htaccess-htpasswd", "htaccess-lib.pl");
-local @users = &list_users($dom);
-local $un = &dav_username($user, $dom);
-local ($suser) = grep { $_->{'user'} eq $un } @users;
+my @users = &list_users($dom);
+my $un = &dav_username($user, $dom);
+my ($suser) = grep { $_->{'user'} eq $un } @users;
 if ($suser) {
 	&virtual_server::write_as_domain_user($dom,
 		sub { &htaccess_htpasswd::delete_user($suser) });
@@ -505,6 +510,7 @@ if ($suser) {
 
 # mailbox_header(&domain)
 # Returns a column header for the user display, or undef for none
+my @column_users; # XXX This is sniffy. Crossing function boundaries.
 sub mailbox_header
 {
 if ($_[0]->{$module_name}) {
@@ -520,9 +526,9 @@ else {
 # Returns the text to display in the column for some user
 sub mailbox_column
 {
-local ($user, $dom) = @_;
-local $un = &dav_username($user, $dom);
-local ($duser) = grep { $_->{'user'} eq $un } @column_users;
+my ($user, $dom) = @_;
+my $un = &dav_username($user, $dom);
+my ($duser) = grep { $_->{'user'} eq $un } @column_users;
 return $duser ? $text{'yes'} : $text{'no'};
 }
 
@@ -531,9 +537,9 @@ return $duser ? $text{'yes'} : $text{'no'};
 # users in this virtual server
 sub mailbox_defaults_inputs
 {
-local ($defs, $dom) = @_;
+my ($defs, $dom) = @_;
 if ($dom->{$module_name}) {
-	local %davdefs;
+	my %davdefs;
 	&read_file("$module_config_directory/defaults.$dom->{'id'}", \%davdefs);
 	return &ui_table_row($text{'mail_dav'},
 		&ui_radio($input_name, $davdefs{'dav'},
@@ -548,9 +554,9 @@ if ($dom->{$module_name}) {
 # file internal to this module to store them
 sub mailbox_defaults_parse
 {
-local ($defs, $dom, $in) = @_;
+my ($defs, $dom, $in) = @_;
 if ($dom->{$module_name}) {
-	local %davdefs;
+	my %davdefs;
 	&read_file("$module_config_directory/defaults.$dom->{'id'}",\%davdefs);
 	$davdefs{'dav'} = $in->{$input_name};
 	&write_file("$module_config_directory/defaults.$dom->{'id'}",\%davdefs);
@@ -562,7 +568,7 @@ if ($dom->{$module_name}) {
 # the Webmin user when this feature is enabled
 sub feature_webmin
 {
-local @doms = map { $_->{'dom'} } grep { $_->{$module_name} } @{$_[1]};
+my @doms = map { $_->{'dom'} } grep { $_->{$module_name} } @{$_[1]};
 if (@doms) {
 	return ( [ $module_name,
 		   { 'dom' => join(" ", @doms),
@@ -582,7 +588,7 @@ return ( [ $module_name, $text{'feat_module'} ] );
 # Returns a link to the DAV module for this domain
 sub feature_links
 {
-local ($dom) = @_;
+my ($dom) = @_;
 return ( { 'mod' => $module_name,
 	   'page' => "index.cgi?dom=$dom->{'id'}",
 	   'desc' => $text{'index_desc'},
