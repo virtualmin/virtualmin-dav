@@ -6,7 +6,8 @@ our (%config);
 BEGIN { push(@INC, ".."); };
 eval "use WebminCore;";
 &init_config();
-&foreign_require("virtual-server", "virtual-server-lib.pl");
+&foreign_require("virtual-server");
+&foreign_require("htaccess-htpasswd");
 $config{'auth'} ||= "Digest";
 
 # digest_file(&domain)
@@ -19,7 +20,6 @@ return "$_[0]->{'home'}/etc/dav.digest.passwd";
 sub list_users
 {
 my $users;
-&foreign_require("htaccess-htpasswd", "htaccess-lib.pl");
 $_[0]->{'dav_auth'} ||= $config{'auth'};
 if ($_[0]->{'dav_auth'} eq 'Digest') {
         $users = &htaccess_htpasswd::list_digest_users(&digest_file($_[0]));
