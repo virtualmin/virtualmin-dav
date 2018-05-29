@@ -474,7 +474,7 @@ $dom->{'dav_auth'} ||= $config{'auth'};
 if ($suser) {
 	# Update the user
 	$suser->{'user'} = $un;
-	if ($user->{'passmode'} == 3) {
+	if ($user->{'passmode'} && $user->{'passmode'} == 3) {
 		# Password changed
 		if ($dom->{'dav_auth'} eq 'Digest') {
                         $suser->{'pass'} = $user->{'pass_digest'} ||
