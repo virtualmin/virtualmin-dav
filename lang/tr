@@ -1,27 +1,21 @@
 feat_name=DAV Logini
-feat_label=DAV logini etkinle&#351;tirilsin mi?
+feat_label=DAV logini etkinleştirilsin mi?
 feat_disname=DAV logini
-feat_losing=DAV eri&#351;imi engellendi
-feat_edepweb=Web sitesi etkinle&#351;tirilmeden DAV etkinle&#351;tirilemez
-feat_eapache=DAV'&#305;n kullan&#305;labilmesi i�in �nce Apache mod_dav mod�l� kurulmal&#305;
-feat_backup=DAV kullan&#305;c&#305; dosyalar&#305; yedekleniyor ..
-feat_nofile=.. hi�bir kullan&#305;c&#305; doyas&#305; bulunamad&#305;!
-feat_restore=DAV kullan&#305;c&#305; dosyas&#305; geri y�kleniyor ..
-feat_nocopy=.. kopyalanamad&#305;!
-feat_backup_name=DAV kullan&#305;c&#305; dosyas&#305;
-feat_evalidatefile=DAV kullan&#305;c&#305; dosyas&#305; $1 mevcut de&#287;il
-feat_evalidatealias=Apache konfig�rasyonundaki DAV alias&#305; eksik
-feat_evalidateloc=Apache konfig�rasyonundaki DAV yeri eksik
-
-setup_dav=DAV direktifleri web sitesi konfig�rasyonuna ekleniyor ..
-setup_already=.. zaten tan&#305;mlanm&#305;&#351;.
-
-delete_dav=Web sitesi konfig�rasyonundan DAV direktifleri kald&#305;r&#305;l&#305;yor ..
-
-save_dav=DAV kullan&#305;c&#305;lar&#305; ve web sitesi konfig�rasyonu i�in alanad&#305; g�ncelleniyor ..
-
-mail_dav=DAV logini etkinle&#351;tirilsin mi?
-mail_clash=Ayn&#305; isimle bir DAV kullan&#305;c&#305;s&#305; zaten mevcut
-mail_pass=Bir kullan&#305;c&#305; i�in DAV etkinle&#351;tirilirken bir &#351;ifre girilmeli
+feat_losing=DAV erişimi engellendi
+feat_edepweb=Web sitesi etkinleştirilmeden DAV etkinleştirilemez
+feat_eapache=DAV'ın kullanılabilmesi için önce Apache mod_dav modülü kurulmalı
+feat_backup=DAV kullanıcı dosyaları yedekleniyor ..
+feat_nofile=.. hiçbir kullanıcı doyası bulunamadı!
+feat_restore=DAV kullanıcı dosyası geri yükleniyor ..
+feat_backup_name=DAV kullanıcı dosyası
+feat_evalidatefile=DAV kullanıcı dosyası $1 mevcut değil
+feat_evalidatealias=Apache konfigürasyonundaki DAV aliası eksik
+feat_evalidateloc=Apache konfigürasyonundaki DAV yeri eksik
+setup_dav=DAV direktifleri web sitesi konfigürasyonuna ekleniyor ..
+setup_already=.. zaten tanımlanmış.
+delete_dav=Web sitesi konfigürasyonundan DAV direktifleri kaldırılıyor ..
+save_dav=DAV kullanıcıları ve web sitesi konfigürasyonu için alanadı güncelleniyor ..
+mail_dav=DAV logini etkinleştirilsin mi?
+mail_clash=Aynı isimle bir DAV kullanıcısı zaten mevcut
+mail_pass=Bir kullanıcı için DAV etkinleştirilirken bir şifre girilmeli
 mail_header=DAV?
-
